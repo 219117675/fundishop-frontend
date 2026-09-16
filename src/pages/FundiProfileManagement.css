@@ -1,0 +1,571 @@
+
+.fundi-profile-management-page {
+    min-height: calc(100vh - 72px);
+
+    background: #f7f9f8;
+
+    padding: 40px 24px 80px;
+
+    color: #172121;
+}
+
+.profile-management-container {
+    width: 100%;
+    max-width: 1000px;
+
+    margin: 0 auto;
+}
+
+
+/* BACK LINK */
+
+.management-back-link {
+    display: inline-block;
+
+    margin-bottom: 25px;
+
+    color: #008c8c;
+
+    text-decoration: none;
+
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.management-back-link:hover {
+    text-decoration: underline;
+}
+
+
+/* HEADER */
+
+.management-header {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 30px;
+
+    padding: 32px;
+
+    margin-bottom: 24px;
+
+    background: white;
+
+    border: 1px solid #dfe8e8;
+    border-radius: 14px;
+
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+}
+
+.management-label {
+    display: block;
+
+    margin-bottom: 8px;
+
+    color: #008c8c;
+
+    font-size: 11px;
+    font-weight: 800;
+
+    letter-spacing: 1.5px;
+}
+
+.management-header h1 {
+    margin: 0 0 8px;
+
+    color: #172121;
+
+    font-size: 30px;
+}
+
+.management-header p {
+    margin: 0;
+
+    color: #687575;
+
+    font-size: 14px;
+}
+
+
+/* STATUS */
+
+.management-status {
+    min-width: 130px;
+
+    padding: 15px;
+
+    text-align: center;
+
+    background: #fff5df;
+
+    border-radius: 10px;
+}
+
+.management-status span {
+    display: block;
+
+    margin-bottom: 6px;
+
+    color: #b97800;
+
+    font-size: 9px;
+    font-weight: 800;
+
+    letter-spacing: 1px;
+}
+
+.management-status strong {
+    color: #b97800;
+
+    font-size: 13px;
+}
+
+
+/* MESSAGES */
+
+.profile-success-message,
+.profile-error-message {
+    padding: 13px 16px;
+
+    margin-bottom: 20px;
+
+    border-radius: 8px;
+
+    font-size: 13px;
+}
+
+.profile-success-message {
+    background: #e7f7f2;
+
+    color: #176b55;
+
+    border: 1px solid #c9eadf;
+}
+
+.profile-error-message {
+    background: #fff0f0;
+
+    color: #b42318;
+
+    border: 1px solid #f1cccc;
+}
+
+
+/* CARD */
+
+.management-card {
+    padding: 30px;
+
+    margin-bottom: 22px;
+
+    background: white;
+
+    border: 1px solid #dfe8e8;
+    border-radius: 14px;
+
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+}
+
+.management-card-header {
+    margin-bottom: 25px;
+}
+
+.management-card-header > span {
+    display: block;
+
+    margin-bottom: 7px;
+
+    color: #008c8c;
+
+    font-size: 10px;
+    font-weight: 800;
+
+    letter-spacing: 1.4px;
+}
+
+.management-card-header h2 {
+    margin: 0 0 7px;
+
+    color: #172121;
+
+    font-size: 22px;
+}
+
+.management-card-header p {
+    margin: 0;
+
+    color: #687575;
+
+    font-size: 13px;
+}
+
+
+/* FORM */
+
+.management-form-group {
+    margin-bottom: 20px;
+}
+
+.management-form-group:last-child {
+    margin-bottom: 0;
+}
+
+.management-form-group label {
+    display: block;
+
+    margin-bottom: 7px;
+
+    color: #172121;
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.management-form-group input,
+.management-form-group select,
+.management-form-group textarea {
+    width: 100%;
+
+    box-sizing: border-box;
+
+    padding: 12px 13px;
+
+    border: 1px solid #d7e0e0;
+
+    border-radius: 7px;
+
+    background: white;
+
+    color: #172121;
+
+    font-family: inherit;
+
+    font-size: 14px;
+
+    outline: none;
+
+    transition: 0.2s;
+}
+
+.management-form-group input:focus,
+.management-form-group select:focus,
+.management-form-group textarea:focus {
+    border-color: #008c8c;
+
+    box-shadow:
+        0 0 0 3px rgba(0, 140, 140, 0.1);
+}
+
+.management-form-group textarea {
+    resize: vertical;
+
+    line-height: 1.6;
+}
+
+.management-form-group small {
+    display: block;
+
+    margin-top: 6px;
+
+    color: #8a9696;
+
+    font-size: 11px;
+
+    text-align: right;
+}
+
+
+/* PRICING GRID */
+
+.management-form-grid {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 18px;
+}
+
+
+/* PREFIX / SUFFIX */
+
+.input-with-prefix,
+.input-with-suffix {
+    position: relative;
+
+    display: flex;
+
+    align-items: center;
+}
+
+.input-with-prefix span,
+.input-with-suffix span {
+    position: absolute;
+
+    color: #687575;
+
+    font-size: 14px;
+
+    pointer-events: none;
+}
+
+.input-with-prefix span {
+    left: 13px;
+}
+
+.input-with-suffix span {
+    right: 13px;
+}
+
+.input-with-prefix input {
+    padding-left: 32px;
+}
+
+.input-with-suffix input {
+    padding-right: 40px;
+}
+
+
+/* ACCOUNT INFORMATION */
+
+.account-information-grid {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 15px;
+}
+
+.account-information-grid > div {
+    padding: 18px;
+
+    background: #fafcfc;
+
+    border: 1px solid #e7eeee;
+
+    border-radius: 9px;
+}
+
+.account-information-grid span {
+    display: block;
+
+    margin-bottom: 7px;
+
+    color: #687575;
+
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.account-information-grid strong {
+    display: block;
+
+    color: #172121;
+
+    font-size: 14px;
+
+    word-break: break-word;
+}
+
+
+/* ACTIONS */
+
+.management-actions {
+    display: flex;
+
+    justify-content: flex-end;
+
+    align-items: center;
+
+    gap: 12px;
+
+    margin-top: 25px;
+}
+
+.cancel-profile-button,
+.save-profile-button {
+    padding: 12px 22px;
+
+    border-radius: 7px;
+
+    font-family: inherit;
+
+    font-size: 13px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    text-decoration: none;
+
+    transition: 0.2s ease;
+}
+
+.cancel-profile-button {
+    border: 1px solid #d0dada;
+
+    background: white;
+
+    color: #687575;
+}
+
+.cancel-profile-button:hover {
+    border-color: #008c8c;
+
+    color: #008c8c;
+}
+
+.save-profile-button {
+    border: 1px solid #008c8c;
+
+    background: #008c8c;
+
+    color: white;
+}
+
+.save-profile-button:hover {
+    background: #006f6f;
+
+    border-color: #006f6f;
+}
+
+.save-profile-button:disabled {
+    opacity: 0.6;
+
+    cursor: not-allowed;
+}
+
+
+/* LOADING */
+
+.profile-management-loading {
+    max-width: 600px;
+
+    margin: 100px auto;
+
+    padding: 40px;
+
+    background: white;
+
+    border: 1px solid #dfe8e8;
+
+    border-radius: 12px;
+
+    color: #687575;
+
+    text-align: center;
+}
+
+
+/* ERROR */
+
+.profile-management-error {
+    max-width: 600px;
+
+    margin: 100px auto;
+
+    padding: 45px;
+
+    background: white;
+
+    border: 1px solid #dfe8e8;
+
+    border-radius: 12px;
+
+    text-align: center;
+}
+
+.profile-management-error h2 {
+    margin: 0 0 10px;
+
+    color: #172121;
+}
+
+.profile-management-error p {
+    margin: 0 0 25px;
+
+    color: #687575;
+
+    font-size: 14px;
+}
+
+.management-back-button {
+    display: inline-block;
+
+    padding: 12px 20px;
+
+    background: #008c8c;
+
+    color: white;
+
+    border-radius: 7px;
+
+    text-decoration: none;
+
+    font-size: 13px;
+
+    font-weight: 700;
+}
+
+
+/* TABLET */
+
+@media (max-width: 800px) {
+
+    .management-header {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+    .management-status {
+        width: 100%;
+
+        box-sizing: border-box;
+    }
+
+    .management-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .account-information-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* MOBILE */
+
+@media (max-width: 550px) {
+
+    .fundi-profile-management-page {
+        padding: 25px 15px 60px;
+    }
+
+    .management-header {
+        padding: 25px;
+    }
+
+    .management-header h1 {
+        font-size: 26px;
+    }
+
+    .management-card {
+        padding: 22px;
+    }
+
+    .management-actions {
+        flex-direction: column-reverse;
+    }
+
+    .cancel-profile-button,
+    .save-profile-button {
+        width: 100%;
+
+        box-sizing: border-box;
+
+        text-align: center;
+    }
+}
+

@@ -1,0 +1,866 @@
+/* =========================================
+   FUNDISHOP FUNDI DASHBOARD
+========================================= */
+
+.fundi-dashboard {
+    min-height: calc(100vh - 72px);
+    background: #f7f9f8;
+    padding: 42px 40px 80px;
+    color: #172121;
+}
+
+
+/* =========================================
+   MAIN CONTENT WIDTH
+========================================= */
+
+.fundi-dashboard > section {
+    width: 100%;
+    max-width: 1250px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+/* =========================================
+   DASHBOARD HEADER
+========================================= */
+
+.fundi-dashboard-header {
+    width: 100%;
+    max-width: 1250px;
+    margin: 0 auto 32px;
+
+    padding: 30px 40px;
+
+    box-sizing: border-box;
+
+    background: #ffffff;
+
+    border: 1px solid #dfe8e8;
+    border-radius: 16px;
+
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.04);
+
+    display: grid;
+    grid-template-columns: 230px 1fr auto;
+    align-items: center;
+
+    gap: 30px;
+}
+
+/* LEFT SIDE */
+
+.dashboard-header-label {
+    display: flex;
+    align-items: center;
+}
+
+.dashboard-label {
+    color: #008c8c;
+
+    font-size: 12px;
+    font-weight: 800;
+
+    letter-spacing: 1.5px;
+
+    white-space: nowrap;
+}
+
+/* CENTER */
+
+.dashboard-header-main {
+    text-align: left;
+}
+
+.dashboard-header-main h1 {
+    margin: 0 0 7px;
+
+    color: #172121;
+
+    font-size: 32px;
+    font-weight: 700;
+
+    line-height: 1.2;
+}
+
+.dashboard-header-main p {
+    margin: 0;
+
+    color: #687575;
+
+    font-size: 14px;
+}
+
+/* LOGOUT */
+
+.dashboard-logout {
+    padding: 11px 22px;
+
+    border: 1px solid #008c8c;
+    border-radius: 7px;
+
+    background: white;
+    color: #008c8c;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    white-space: nowrap;
+
+    transition: all 0.2s ease;
+}
+
+.dashboard-logout:hover {
+    background: #008c8c;
+    color: white;
+}
+
+
+/* =========================================
+   LOGOUT BUTTON
+========================================= */
+
+.dashboard-logout {
+    padding: 10px 20px;
+
+    border: 1px solid #008c8c;
+    border-radius: 7px;
+
+    background: white;
+    color: #008c8c;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: 0.2s ease;
+}
+
+.dashboard-logout:hover {
+    background: #008c8c;
+    color: white;
+}
+
+
+/* =========================================
+   VERIFICATION CARD
+========================================= */
+
+.verification-card {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+
+    min-height: 82px;
+
+    padding: 20px 24px;
+
+    margin-bottom: 50px;
+
+    background: white;
+
+    border: 1px solid #e0e8e8;
+    border-radius: 12px;
+
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+}
+
+.verification-icon {
+    width: 44px;
+    height: 44px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #fff5df;
+    color: #d88b00;
+
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.verification-content {
+    flex: 1;
+}
+
+.verification-content > span {
+    display: block;
+
+    margin-bottom: 4px;
+
+    color: #008c8c;
+
+    font-size: 10px;
+    font-weight: 800;
+
+    letter-spacing: 1.2px;
+}
+
+.verification-content h2 {
+    margin: 0 0 4px;
+
+    color: #172121;
+
+    font-size: 17px;
+    font-weight: 700;
+
+    text-transform: capitalize;
+}
+
+.verification-content p {
+    margin: 0;
+
+    color: #687575;
+
+    font-size: 13px;
+}
+
+.verification-status {
+    padding: 7px 14px;
+
+    border-radius: 20px;
+
+    background: #fff5df;
+    color: #b97800;
+
+    font-size: 10px;
+    font-weight: 800;
+
+    letter-spacing: 0.8px;
+}
+
+
+/* =========================================
+   SECTION HEADINGS
+========================================= */
+
+.section-heading {
+    margin-bottom: 24px;
+}
+
+.section-heading > span {
+    display: block;
+
+    margin-bottom: 7px;
+
+    color: #008c8c;
+
+    font-size: 10px;
+    font-weight: 800;
+
+    letter-spacing: 1.5px;
+
+    text-align: center;
+}
+
+.section-heading h2 {
+    margin: 0 0 8px;
+
+    color: #172121;
+
+    font-size: 28px;
+    font-weight: 700;
+
+    text-align: center;
+}
+
+.section-heading p {
+    max-width: 600px;
+
+    margin: 0 auto;
+
+    color: #687575;
+
+    font-size: 13px;
+
+    line-height: 1.6;
+
+    text-align: center;
+}
+
+
+/* =========================================
+   PROFESSIONAL PROFILE SECTION
+========================================= */
+
+.professional-section {
+    margin-bottom: 60px;
+}
+
+
+/* =========================================
+   PROFESSIONAL PROFILE CARD
+========================================= */
+
+.professional-card {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 16px;
+
+    padding: 22px;
+
+    background: white;
+
+    border: 1px solid #e0e8e8;
+    border-radius: 12px;
+
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+}
+
+
+/* =========================================
+   PROFESSIONAL ITEM
+========================================= */
+
+.professional-item {
+    display: flex;
+    align-items: flex-start;
+
+    gap: 13px;
+
+    min-height: 75px;
+
+    padding: 18px;
+
+    background: #fafcfc;
+
+    border: 1px solid #e7eeee;
+
+    border-radius: 9px;
+
+    box-sizing: border-box;
+}
+
+.professional-icon {
+    width: 38px;
+    height: 38px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 8px;
+
+    background: #e7f6f6;
+
+    font-size: 17px;
+}
+
+.professional-item > div:last-child {
+    min-width: 0;
+}
+
+.professional-item span {
+    display: block;
+
+    margin-bottom: 5px;
+
+    color: #687575;
+
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.professional-item strong {
+    display: block;
+
+    color: #172121;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    line-height: 1.4;
+
+    word-break: break-word;
+}
+
+.professional-item small {
+    margin-left: 4px;
+
+    color: #687575;
+
+    font-size: 11px;
+    font-weight: 500;
+}
+
+
+/* =========================================
+   BIO
+========================================= */
+
+.professional-bio {
+    grid-column: span 2;
+}
+
+.professional-bio strong {
+    font-weight: 500;
+
+    color: #465454;
+}
+
+
+/* =========================================
+   PROFILE LOADING
+========================================= */
+
+.profile-loading {
+    padding: 35px;
+
+    background: white;
+
+    border: 1px solid #e0e8e8;
+    border-radius: 12px;
+
+    color: #687575;
+
+    font-size: 14px;
+
+    text-align: center;
+}
+
+
+/* =========================================
+   NO PROFILE
+========================================= */
+
+.no-profile-card {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+
+    padding: 24px;
+
+    background: white;
+
+    border: 1px solid #e0e8e8;
+    border-radius: 12px;
+
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+}
+
+.no-profile-icon {
+    width: 50px;
+    height: 50px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+
+    background: #e7f6f6;
+
+    font-size: 22px;
+}
+
+.no-profile-card h3 {
+    margin: 0 0 6px;
+
+    color: #172121;
+
+    font-size: 16px;
+}
+
+.no-profile-card p {
+    margin: 0;
+
+    color: #687575;
+
+    font-size: 13px;
+}
+
+.no-profile-card button {
+    margin-left: auto;
+
+    padding: 10px 17px;
+
+    border: none;
+    border-radius: 7px;
+
+    background: #008c8c;
+    color: white;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+
+/* =========================================
+   MANAGE YOUR WORK
+========================================= */
+
+.dashboard-section {
+    margin-bottom: 60px;
+}
+
+
+/* =========================================
+   DASHBOARD GRID
+========================================= */
+
+.dashboard-grid {
+    display: grid;
+
+    grid-template-columns: repeat(2, 1fr);
+
+    gap: 18px;
+}
+
+
+/* =========================================
+   DASHBOARD CARD
+========================================= */
+
+.dashboard-card {
+    display: flex;
+    flex-direction: column;
+
+    min-height: 205px;
+
+    padding: 24px;
+
+    background: white;
+
+    border: 1px solid #e0e8e8;
+    border-radius: 12px;
+
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+
+    transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-2px);
+
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.07);
+}
+
+
+/* =========================================
+   CARD ICON
+========================================= */
+
+.dashboard-card-icon {
+    width: 44px;
+    height: 44px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-bottom: 17px;
+
+    border-radius: 9px;
+
+    background: #e7f6f6;
+
+    font-size: 20px;
+}
+
+
+/* =========================================
+   CARD CONTENT
+========================================= */
+
+.dashboard-card-content {
+    flex: 1;
+}
+
+.dashboard-card h3 {
+    margin: 0 0 7px;
+
+    color: #172121;
+
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.dashboard-card p {
+    max-width: 430px;
+
+    margin: 0;
+
+    color: #687575;
+
+    font-size: 13px;
+
+    line-height: 1.6;
+}
+
+
+/* =========================================
+   CARD BUTTON
+========================================= */
+
+.dashboard-card button {
+    align-self: flex-start;
+
+    margin-top: 20px;
+
+    padding: 9px 15px;
+
+    border: 1px solid #008c8c;
+    border-radius: 7px;
+
+    background: white;
+    color: #008c8c;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: 0.2s ease;
+}
+
+.dashboard-card button:hover {
+    background: #008c8c;
+    color: white;
+}
+
+
+/* =========================================
+   ACCOUNT INFORMATION
+========================================= */
+
+.account-section {
+    margin-bottom: 30px;
+}
+
+
+/* =========================================
+   ACCOUNT CARD
+========================================= */
+
+.account-card {
+    display: grid;
+
+    grid-template-columns: repeat(4, 1fr);
+
+    background: white;
+
+    border: 1px solid #e0e8e8;
+    border-radius: 12px;
+
+    overflow: hidden;
+
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+}
+
+.account-row {
+    min-height: 95px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    padding: 20px 24px;
+
+    border-right: 1px solid #e7eeee;
+
+    box-sizing: border-box;
+}
+
+.account-row:last-child {
+    border-right: none;
+}
+
+.account-row span {
+    margin-bottom: 8px;
+
+    color: #687575;
+
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.account-row strong {
+    color: #172121;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    word-break: break-word;
+}
+
+
+/* =========================================
+   BOTTOM SPACE
+========================================= */
+
+.dashboard-bottom-space {
+    height: 20px;
+}
+
+
+/* =========================================
+   RESPONSIVE TABLET
+========================================= */
+
+@media (max-width: 900px) {
+
+    .fundi-dashboard {
+        padding: 35px 25px 60px;
+    }
+
+    .professional-card {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .professional-bio {
+        grid-column: span 2;
+    }
+
+    .account-card {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .account-row:nth-child(2) {
+        border-right: none;
+    }
+
+    .account-row:nth-child(-n + 2) {
+        border-bottom: 1px solid #e7eeee;
+    }
+
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 650px) {
+
+    .fundi-dashboard {
+        padding: 25px 16px 50px;
+    }
+
+    .fundi-dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+
+        gap: 18px;
+    }
+
+    .fundi-dashboard-header h1 {
+        font-size: 27px;
+    }
+
+    .dashboard-logout {
+        align-self: flex-start;
+    }
+
+    .verification-card {
+        align-items: flex-start;
+
+        padding: 18px;
+    }
+
+    .verification-status {
+        display: none;
+    }
+
+    .professional-card {
+        grid-template-columns: 1fr;
+
+        padding: 15px;
+    }
+
+    .professional-bio {
+        grid-column: span 1;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .account-card {
+        grid-template-columns: 1fr;
+    }
+
+    .account-row {
+        border-right: none;
+
+        border-bottom: 1px solid #e7eeee;
+    }
+
+    .account-row:last-child {
+        border-bottom: none;
+    }
+
+    .no-profile-card {
+        flex-direction: column;
+
+        align-items: flex-start;
+    }
+
+    .no-profile-card button {
+        margin-left: 0;
+    }
+
+    @media (max-width: 900px) {
+
+        .fundi-dashboard-header {
+            grid-template-columns: 1fr auto;
+            gap: 20px;
+        }
+
+        .dashboard-header-label {
+            grid-column: 1 / -1;
+        }
+
+        .dashboard-header-main {
+            grid-column: 1;
+        }
+
+        .dashboard-logout {
+            grid-column: 2;
+            grid-row: 2;
+        }
+    }
+
+
+    @media (max-width: 600px) {
+
+        .fundi-dashboard-header {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+
+            padding: 25px;
+        }
+
+        .dashboard-header-main {
+            width: 100%;
+        }
+
+        .dashboard-header-main h1 {
+            font-size: 26px;
+        }
+
+        .dashboard-logout {
+            align-self: flex-end;
+        }
+    }
+
+}

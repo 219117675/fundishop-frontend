@@ -1,0 +1,140 @@
+.navbar {
+    width: 100%;
+    background: #008c8c;
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.navbar-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px 24px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+}
+
+/* Logo */
+
+.navbar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    font-size: 24px;
+    font-weight: 700;
+    white-space: nowrap;
+
+    color: white;
+    text-decoration: none;
+
+    cursor: pointer;
+}
+
+.logo-icon {
+    width: 40px;
+    height: 40px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: white;
+    color: #008c8c;
+
+    border-radius: 50%;
+    font-size: 20px;
+}
+
+/* Navigation */
+
+.navbar-links {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+}
+
+.navbar-links a {
+    color: white;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 500;
+
+    transition: opacity 0.2s ease;
+}
+
+.navbar-links a:hover {
+    opacity: 0.75;
+}
+
+/* Buttons */
+
+.navbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.login-button,
+.register-button {
+    padding: 10px 18px;
+    border-radius: 6px;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+    border: none;
+}
+
+.login-button {
+    background: transparent;
+    color: white;
+    border: 1px solid white;
+}
+
+.register-button {
+    background: #f4b942;
+    color: #172121;
+}
+
+.login-button:hover,
+.register-button:hover {
+    opacity: 0.85;
+}
+
+/* Mobile */
+
+@media (max-width: 768px) {
+
+    .navbar-container {
+        padding: 14px 18px;
+    }
+
+    .navbar-links {
+        display: none;
+    }
+
+    .navbar-actions {
+        margin-left: auto;
+    }
+
+    .login-button,
+    .register-button {
+        padding: 8px 12px;
+    }
+
+    .navbar-logo {
+        font-size: 20px;
+    }
+
+    .logo-icon {
+        width: 34px;
+        height: 34px;
+    }
+}

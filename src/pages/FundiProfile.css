@@ -1,0 +1,308 @@
+.profile-page {
+    min-height: calc(100vh - 72px);
+    background: #f7f9f8;
+    padding: 40px 24px 80px;
+}
+
+.profile-container {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.back-link {
+    display: inline-block;
+    margin-bottom: 25px;
+
+    color: #008c8c;
+    text-decoration: none;
+
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+/* Profile Header */
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+
+    padding: 35px;
+
+    background: white;
+
+    border: 1px solid #e1eaea;
+    border-radius: 14px;
+
+    box-shadow:
+            0 5px 20px rgba(0, 0, 0, 0.04);
+}
+
+.profile-avatar {
+    min-width: 100px;
+    height: 100px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #e5f6f6;
+    color: #008c8c;
+
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.profile-main-info {
+    flex: 1;
+}
+
+.profile-name-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+
+    gap: 12px;
+}
+
+.profile-name-row h1 {
+    margin: 0;
+
+    color: #172121;
+    font-size: 30px;
+}
+
+.profile-verified {
+    padding: 5px 9px;
+
+    border-radius: 20px;
+
+    background: #e6f7ed;
+    color: #22844b;
+
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.profile-trade {
+    margin-top: 8px;
+
+    color: #008c8c;
+
+    font-size: 17px;
+    font-weight: 600;
+}
+
+.profile-location {
+    margin-top: 7px;
+
+    color: #687575;
+    font-size: 14px;
+}
+
+.profile-stats {
+    display: flex;
+    gap: 20px;
+
+    margin-top: 15px;
+
+    color: #596565;
+    font-size: 14px;
+}
+
+/* Booking */
+
+.profile-action {
+    min-width: 180px;
+}
+
+.book-button {
+    display: block;
+
+    padding: 13px 20px;
+
+    border-radius: 7px;
+
+    background: #008c8c;
+    color: white;
+
+    text-align: center;
+    text-decoration: none;
+
+    font-weight: 600;
+}
+
+.book-button:hover {
+    background: #006f6f;
+}
+
+/* Content */
+
+.profile-content {
+    margin-top: 25px;
+
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    gap: 20px;
+}
+
+.profile-section {
+    padding: 28px;
+
+    background: white;
+
+    border: 1px solid #e1eaea;
+    border-radius: 12px;
+}
+
+.profile-section h2 {
+    margin-bottom: 15px;
+
+    color: #172121;
+
+    font-size: 21px;
+}
+
+.profile-section p {
+    color: #687575;
+
+    font-size: 15px;
+    line-height: 1.7;
+}
+
+/* Services */
+
+.profile-services {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.profile-service {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    color: #596565;
+
+    font-size: 14px;
+}
+
+.profile-service span {
+    color: #008c8c;
+    font-weight: 700;
+}
+
+/* Not Found */
+
+.profile-not-found {
+    max-width: 600px;
+
+    margin: 80px auto;
+
+    padding: 50px;
+
+    text-align: center;
+
+    background: white;
+
+    border-radius: 12px;
+}
+
+.profile-not-found h1 {
+    color: #172121;
+}
+
+.profile-not-found p {
+    margin: 15px 0 25px;
+
+    color: #687575;
+}
+
+.back-button {
+    display: inline-block;
+
+    padding: 12px 20px;
+
+    background: #008c8c;
+    color: white;
+
+    border-radius: 6px;
+
+    text-decoration: none;
+}
+
+/* Responsive */
+
+@media (max-width: 800px) {
+
+    .profile-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .profile-action {
+        width: 100%;
+    }
+
+    .profile-content {
+        grid-template-columns: 1fr;
+    }
+
+    .book-button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 500px) {
+
+    .profile-page {
+        padding: 25px 15px 60px;
+    }
+
+    .profile-header {
+        padding: 25px;
+    }
+
+    .profile-name-row h1 {
+        font-size: 25px;
+    }
+
+    .profile-stats {
+        flex-direction: column;
+        gap: 7px;
+    }
+
+    .profile-loading-spinner {
+    width: 40px;
+    height: 40px;
+
+    margin: 0 auto 20px;
+
+    border: 4px solid #e5f6f6;
+    border-top: 4px solid #008c8c;
+
+    border-radius: 50%;
+
+    animation: profileSpin 0.8s linear infinite;
+}
+
+    @keyframes profileSpin {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+
+}
