@@ -1,17 +1,13 @@
 .my-bookings-page {
     min-height: calc(100vh - 72px);
-
     background: #f7f9f8;
-
     padding: 40px 24px 80px;
 }
 
 .my-bookings-container {
     max-width: 1100px;
-
     margin: 0 auto;
 }
-
 
 /* =========================
    BACK LINK
@@ -19,15 +15,10 @@
 
 .bookings-back-link {
     display: inline-block;
-
     margin-bottom: 25px;
-
     color: #008c8c;
-
     font-size: 14px;
-
     font-weight: 600;
-
     text-decoration: none;
 }
 
@@ -35,75 +26,50 @@
     text-decoration: underline;
 }
 
-
 /* =========================
    HEADER
 ========================= */
 
 .my-bookings-header {
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
-
     gap: 25px;
-
     padding: 35px;
-
     margin-bottom: 25px;
-
     background: white;
-
     border: 1px solid #e1eaea;
-
     border-radius: 14px;
-
-    box-shadow:
-            0 5px 20px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.04);
 }
 
 .bookings-label {
     color: #008c8c;
-
     font-size: 12px;
-
     font-weight: 700;
-
     letter-spacing: 1.5px;
 }
 
 .my-bookings-header h1 {
     margin: 10px 0;
-
     color: #172121;
-
     font-size: 32px;
 }
 
 .my-bookings-header p {
     color: #687575;
-
     font-size: 15px;
 }
 
 .find-fundi-button {
     display: inline-block;
-
     padding: 12px 20px;
-
     border-radius: 7px;
-
     background: #008c8c;
-
     color: white;
-
     text-decoration: none;
-
     font-size: 14px;
-
     font-weight: 600;
-
     white-space: nowrap;
 }
 
@@ -111,18 +77,14 @@
     background: #006f6f;
 }
 
-
 /* =========================
    SECTION
 ========================= */
 
 .bookings-section {
     padding: 28px;
-
     background: white;
-
     border: 1px solid #e1eaea;
-
     border-radius: 12px;
 }
 
@@ -132,22 +94,16 @@
 
 .bookings-section-heading span {
     color: #008c8c;
-
     font-size: 11px;
-
     font-weight: 700;
-
     letter-spacing: 1.3px;
 }
 
 .bookings-section-heading h2 {
     margin-top: 7px;
-
     color: #172121;
-
     font-size: 22px;
 }
-
 
 /* =========================
    BOOKING LIST
@@ -155,12 +111,9 @@
 
 .bookings-list {
     display: flex;
-
     flex-direction: column;
-
     gap: 18px;
 }
-
 
 /* =========================
    BOOKING CARD
@@ -168,16 +121,10 @@
 
 .booking-card {
     padding: 22px;
-
     background: white;
-
     border: 1px solid #e1eaea;
-
     border-radius: 12px;
-
-    box-shadow:
-            0 4px 15px rgba(0, 0, 0, 0.03);
-
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
     transition:
             transform 0.2s ease,
             box-shadow 0.2s ease;
@@ -185,11 +132,8 @@
 
 .booking-card:hover {
     transform: translateY(-2px);
-
-    box-shadow:
-            0 8px 22px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.06);
 }
-
 
 /* =========================
    FUNDI
@@ -197,56 +141,37 @@
 
 .booking-fundi {
     display: flex;
-
     align-items: center;
-
     gap: 14px;
-
     margin-bottom: 20px;
 }
 
 .booking-avatar {
     width: 55px;
-
     height: 55px;
-
     min-width: 55px;
-
     display: flex;
-
     align-items: center;
-
     justify-content: center;
-
     border-radius: 50%;
-
     background: #e5f6f6;
-
     color: #008c8c;
-
     font-size: 17px;
-
     font-weight: 700;
 }
 
 .booking-fundi h3 {
     margin: 0;
-
     color: #172121;
-
     font-size: 18px;
 }
 
 .booking-fundi p {
     margin-top: 5px;
-
     color: #008c8c;
-
     font-size: 13px;
-
     font-weight: 600;
 }
-
 
 /* =========================
    STATUS
@@ -258,52 +183,41 @@
 
 .booking-status {
     display: inline-block;
-
     padding: 6px 12px;
-
     border-radius: 20px;
-
     font-size: 11px;
-
     font-weight: 700;
 }
 
 .booking-status.requested {
     background: #fff4d6;
-
     color: #9a7200;
 }
 
 .booking-status.accepted {
     background: #e6f7ed;
-
     color: #22844b;
 }
 
 .booking-status.declined {
     background: #fdeaea;
-
     color: #b42323;
 }
 
 .booking-status.completed {
     background: #e5f6f6;
-
     color: #008c8c;
 }
 
 .booking-status.cancelled {
     background: #f1eeee;
-
     color: #6d6262;
 }
 
 .booking-status.rescheduled {
     background: #eee9fb;
-
     color: #6842a5;
 }
-
 
 /* =========================
    DETAILS
@@ -311,47 +225,32 @@
 
 .booking-details {
     display: grid;
-
-    grid-template-columns:
-        repeat(5, 1fr);
-
+    grid-template-columns: repeat(5, 1fr);
     gap: 15px;
-
     padding: 18px 0;
-
     border-top: 1px solid #edf1f1;
-
     border-bottom: 1px solid #edf1f1;
 }
 
 .booking-detail {
     display: flex;
-
     flex-direction: column;
-
     gap: 6px;
 }
 
 .detail-label {
     color: #879393;
-
     font-size: 11px;
-
     font-weight: 600;
-
     text-transform: uppercase;
 }
 
 .booking-detail strong {
     color: #172121;
-
     font-size: 13px;
-
     font-weight: 600;
-
     word-break: break-word;
 }
-
 
 /* =========================
    DESCRIPTION
@@ -363,24 +262,17 @@
 
 .booking-description > span {
     color: #687575;
-
     font-size: 11px;
-
     font-weight: 700;
-
     text-transform: uppercase;
 }
 
 .booking-description p {
     margin-top: 7px;
-
     color: #596565;
-
     font-size: 13px;
-
     line-height: 1.6;
 }
-
 
 /* =========================
    ACTIONS
@@ -388,197 +280,74 @@
 
 .booking-actions {
     display: flex;
-
+    align-items: center;
     justify-content: flex-end;
-
+    flex-wrap: wrap;
+    gap: 10px;
     margin-top: 18px;
 }
 
 .view-fundi-button {
-    display: inline-block;
-
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding: 9px 16px;
-
     border: 1px solid #008c8c;
-
     border-radius: 6px;
-
     background: white;
-
     color: #008c8c;
-
     font-size: 13px;
-
     font-weight: 600;
-
     text-decoration: none;
 }
 
 .view-fundi-button:hover {
     background: #008c8c;
-
     color: white;
 }
 
-
 /* =========================
-   MESSAGES
+   REVIEW BUTTON
 ========================= */
 
-.bookings-message {
-    padding: 65px 30px;
-
-    text-align: center;
-
-    background: white;
-
-    border: 1px solid #e1eaea;
-
-    border-radius: 12px;
-
-    box-shadow:
-            0 5px 20px rgba(0, 0, 0, 0.03);
-}
-
-.message-icon,
-.loading-icon {
-    margin-bottom: 15px;
-
-    font-size: 40px;
-}
-
-.bookings-message h2 {
-    color: #172121;
-
-    font-size: 22px;
-}
-
-.bookings-message p {
-    max-width: 500px;
-
-    margin: 10px auto 25px;
-
-    color: #687575;
-
-    font-size: 14px;
-
-    line-height: 1.6;
-}
-
-.error-message {
-    border-color: #f0dada;
-}
-
-
-/* =========================
-   BUTTONS
-========================= */
-
-.browse-fundis-button,
-.retry-button {
-    display: inline-block;
-
-    padding: 11px 20px;
-
-    border: none;
-
-    border-radius: 7px;
-
-    background: #008c8c;
-
-    color: white;
-
-    font-size: 14px;
-
-    font-weight: 600;
-
-    text-decoration: none;
-
-    cursor: pointer;
-}
-
-.browse-fundis-button:hover,
-.retry-button:hover {
-    background: #006f6f;
-}
-
-
-/* =========================
-   RESPONSIVE
-========================= */
-
-@media (max-width: 900px) {
-
-    .booking-details {
-        grid-template-columns:
-            repeat(3, 1fr);
-    }
-
-}
-
-
-@media (max-width: 700px) {
-
-    .my-bookings-page {
-        padding: 30px 18px 60px;
-    }
-
-    .my-bookings-header {
-        align-items: flex-start;
-
-        flex-direction: column;
-
-        padding: 28px;
-    }
-
-    .my-bookings-header h1 {
-        font-size: 28px;
-    }
-
-    .find-fundi-button {
-        width: 100%;
-
-        text-align: center;
-    }
-
-    .bookings-section {
-        padding: 20px;
-    }
-
-    .booking-details {
-        grid-template-columns:
-            repeat(2, 1fr);
-    }
-
-    .booking-actions {
-        justify-content: flex-start;
-    }
-
-}
-
-
-@media (max-width: 450px) {
-
-    .booking-details {
-        grid-template-columns: 1fr;
-    }
-
-    .booking-card {
-        padding: 18px;
-    }
-
-}
-
-/* =========================================================
-   CANCEL BUTTON
-========================================================= */
-
-.booking-actions {
-    display: flex;
+.review-booking-button {
+    display: inline-flex;
     align-items: center;
-    justify-content: flex-end;
-    gap: 10px;
+    justify-content: center;
+    padding: 9px 16px;
+    border: none;
+    border-radius: 6px;
+    background: #008c8c;
+    color: white;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+            background 0.2s ease,
+            transform 0.2s ease;
 }
+
+.review-booking-button:hover {
+    background: #006f6f;
+    transform: translateY(-1px);
+}
+
+.review-submitted-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 9px 16px;
+    border-radius: 6px;
+    background: #edf8f5;
+    color: #16705f;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* =========================
+   CANCEL BUTTON
+========================= */
 
 .cancel-booking-button {
     display: inline-flex;
@@ -605,29 +374,130 @@
     transform: translateY(-1px);
 }
 
+/* =========================
+   RESCHEDULE BUTTON
+========================= */
+
+.reschedule-booking-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 9px 16px;
+    border: 1px solid #6842a5;
+    border-radius: 6px;
+    background: white;
+    color: #6842a5;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+            background 0.2s ease,
+            color 0.2s ease,
+            transform 0.2s ease;
+}
+
+.reschedule-booking-button:hover {
+    background: #6842a5;
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* =========================
+   MESSAGES
+========================= */
+
+.bookings-message {
+    padding: 65px 30px;
+    text-align: center;
+    background: white;
+    border: 1px solid #e1eaea;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.03);
+}
+
+.message-icon,
+.loading-icon {
+    margin-bottom: 15px;
+    font-size: 40px;
+}
+
+.bookings-message h2 {
+    color: #172121;
+    font-size: 22px;
+}
+
+.bookings-message p {
+    max-width: 500px;
+    margin: 10px auto 25px;
+    color: #687575;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.error-message {
+    border-color: #f0dada;
+}
+
+/* =========================
+   GENERAL BUTTONS
+========================= */
+
+.browse-fundis-button,
+.retry-button {
+    display: inline-block;
+    padding: 11px 20px;
+    border: none;
+    border-radius: 7px;
+    background: #008c8c;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.browse-fundis-button:hover,
+.retry-button:hover {
+    background: #006f6f;
+}
 
 /* =========================================================
-   CANCEL CONFIRMATION MODAL
+   CANCEL MODAL
 ========================================================= */
 
-.cancel-modal-overlay {
+.cancel-modal-overlay,
+.reschedule-modal-overlay,
+.review-modal-overlay {
     position: fixed;
     inset: 0;
+    z-index: 1000;
+
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(23, 33, 33, 0.5);
-    z-index: 1000;
+
     padding: 20px;
+
+    background: rgba(23, 33, 33, 0.55);
 }
 
-.cancel-modal {
+.cancel-modal,
+.reschedule-modal,
+.review-modal {
     width: 100%;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+/* =========================
+   CANCEL
+========================= */
+
+.cancel-modal {
     max-width: 420px;
     padding: 28px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 }
 
 .cancel-modal h3 {
@@ -662,9 +532,6 @@
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition:
-            background 0.2s ease,
-            transform 0.2s ease;
 }
 
 .keep-booking-button {
@@ -685,7 +552,6 @@
 
 .confirm-cancel-button:hover {
     background: #b83f3f;
-    transform: translateY(-1px);
 }
 
 .keep-booking-button:disabled,
@@ -694,72 +560,13 @@
     cursor: not-allowed;
 }
 
-
 /* =========================================================
-   CANCEL MODAL — MOBILE
+   RESCHEDULE
 ========================================================= */
-
-@media (max-width: 450px) {
-
-    .cancel-modal-actions {
-        flex-direction: column;
-    }
-
-}
-
-
-/* =========================================================
-   RESCHEDULE BUTTON
-========================================================= */
-
-.reschedule-booking-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 9px 16px;
-    border: 1px solid #6842a5;
-    border-radius: 6px;
-    background: white;
-    color: #6842a5;
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition:
-            background 0.2s ease,
-            color 0.2s ease,
-            transform 0.2s ease;
-}
-
-.reschedule-booking-button:hover {
-    background: #6842a5;
-    color: white;
-    transform: translateY(-1px);
-}
-
-
-/* =========================================================
-   RESCHEDULE MODAL
-========================================================= */
-
-.reschedule-modal-overlay {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(23, 33, 33, 0.5);
-    z-index: 1000;
-    padding: 20px;
-}
 
 .reschedule-modal {
-    width: 100%;
     max-width: 420px;
     padding: 28px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 }
 
 .reschedule-modal h3 {
@@ -830,14 +637,10 @@
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition:
-            background 0.2s ease,
-            transform 0.2s ease;
 }
 
 .confirm-reschedule-button:hover {
     background: #55348a;
-    transform: translateY(-1px);
 }
 
 .confirm-reschedule-button:disabled {
@@ -845,19 +648,283 @@
     cursor: not-allowed;
 }
 
-
 /* =========================================================
-   RESCHEDULE MODAL — MOBILE
+   REVIEW MODAL
 ========================================================= */
 
-@media (max-width: 450px) {
+.review-modal {
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 30px;
+}
 
+.review-modal-header {
+    margin-bottom: 24px;
+}
+
+.review-modal-label {
+    display: inline-block;
+    margin-bottom: 8px;
+    color: #008c8c;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+
+.review-modal-header h3 {
+    margin: 0 0 8px;
+    color: #172121;
+    font-size: 24px;
+}
+
+.review-modal-header p {
+    margin: 0;
+    color: #667085;
+}
+
+/* =========================
+   RATING
+========================= */
+
+.review-rating-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 22px;
+}
+
+.review-rating-section > span {
+    color: #172121;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.review-stars {
+    display: flex;
+    gap: 6px;
+}
+
+.review-star {
+    border: none;
+    background: transparent;
+    padding: 0;
+    color: #d0d5dd;
+    font-size: 34px;
+    line-height: 1;
+    cursor: pointer;
+    transition:
+            color 0.15s ease,
+            transform 0.15s ease;
+}
+
+.review-star:hover,
+.review-star.active {
+    color: #d89b32;
+    transform: scale(1.05);
+}
+
+.review-rating-section strong {
+    color: #344054;
+    font-size: 14px;
+}
+
+/* =========================
+   COMMENT
+========================= */
+
+.review-comment-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.review-comment-field span {
+    color: #172121;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.review-comment-field textarea {
+    width: 100%;
+    box-sizing: border-box;
+    resize: vertical;
+    min-height: 120px;
+    padding: 12px;
+    border: 1px solid #d0d5dd;
+    border-radius: 10px;
+    font: inherit;
+    outline: none;
+}
+
+.review-comment-field textarea:focus {
+    border-color: #008c8c;
+    box-shadow: 0 0 0 3px rgba(0, 140, 140, 0.1);
+}
+
+.review-comment-field small {
+    align-self: flex-end;
+    color: #98a2b3;
+}
+
+/* =========================
+   REVIEW MESSAGES
+========================= */
+
+.review-modal-error,
+.review-modal-success {
+    margin: 16px 0 0;
+    padding: 11px 13px;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.review-modal-error {
+    background: #fff1f0;
+    color: #b42318;
+}
+
+.review-modal-success {
+    background: #ecfdf3;
+    color: #027a48;
+}
+
+/* =========================
+   REVIEW ACTIONS
+========================= */
+
+.review-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 24px;
+}
+
+.review-cancel-button,
+.review-submit-button {
+    border: none;
+    border-radius: 8px;
+    padding: 11px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.review-cancel-button {
+    background: #f2f4f7;
+    color: #344054;
+}
+
+.review-cancel-button:hover {
+    background: #e4e7ec;
+}
+
+.review-submit-button {
+    background: #008c8c;
+    color: white;
+}
+
+.review-submit-button:hover {
+    background: #007474;
+}
+
+.review-cancel-button:disabled,
+.review-submit-button:disabled,
+.review-star:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 900px) {
+    .booking-details {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 700px) {
+    .my-bookings-page {
+        padding: 30px 18px 60px;
+    }
+
+    .my-bookings-header {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 28px;
+    }
+
+    .my-bookings-header h1 {
+        font-size: 28px;
+    }
+
+    .find-fundi-button {
+        width: 100%;
+        text-align: center;
+    }
+
+    .bookings-section {
+        padding: 20px;
+    }
+
+    .booking-details {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .booking-actions {
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 600px) {
+    .review-modal-overlay {
+        padding: 14px;
+    }
+
+    .review-modal {
+        padding: 22px;
+        border-radius: 14px;
+    }
+
+    .review-modal-actions {
+        flex-direction: column-reverse;
+    }
+
+    .review-cancel-button,
+    .review-submit-button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 450px) {
+    .booking-details {
+        grid-template-columns: 1fr;
+    }
+
+    .booking-card {
+        padding: 18px;
+    }
+
+    .cancel-modal-actions,
+    .reschedule-modal-actions,
     .reschedule-modal-fields {
         flex-direction: column;
     }
 
-    .reschedule-modal-actions {
+    .booking-actions {
         flex-direction: column;
+        align-items: stretch;
     }
 
+    .view-fundi-button,
+    .review-booking-button,
+    .reschedule-booking-button,
+    .cancel-booking-button,
+    .review-submitted-label {
+        width: 100%;
+        box-sizing: border-box;
+        text-align: center;
+    }
 }

@@ -1,0 +1,249 @@
+.notifications-page {
+    min-height: calc(100vh - 80px);
+    background: #f7f9f8;
+    padding: 40px 20px 70px;
+}
+
+.notifications-container {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.notifications-topbar {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    margin-bottom: 30px;
+}
+
+.notifications-topbar h1 {
+    margin: 0 0 6px;
+    color: #111827;
+    font-size: 32px;
+}
+
+.notifications-topbar p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 15px;
+}
+
+.notifications-back-button {
+    border: none;
+    background: transparent;
+    color: #008c8c;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 8px 0;
+}
+
+.notifications-back-button:hover {
+    text-decoration: underline;
+}
+
+.notifications-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 16px;
+}
+
+.mark-all-page-button {
+    border: none;
+    background: #008c8c;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.mark-all-page-button:hover {
+    background: #007575;
+}
+
+.notifications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.notification-card {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: 0.2s ease;
+}
+
+.notification-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 16px rgba(0, 0, 0, 0.07);
+}
+
+.notification-card-unread {
+    border-left: 4px solid #008c8c;
+}
+
+.notification-card-read {
+    opacity: 0.82;
+}
+
+.notification-card-icon {
+    width: 46px;
+    height: 46px;
+    min-width: 46px;
+    border-radius: 50%;
+    background: #e6f5f5;
+    color: #008c8c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 21px;
+}
+
+.notification-card-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.notification-card-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.notification-card-heading h3 {
+    margin: 0;
+    color: #111827;
+    font-size: 16px;
+    line-height: 1.45;
+}
+
+.notification-new-badge {
+    display: inline-flex;
+    align-items: center;
+    background: #008c8c;
+    color: white;
+    border-radius: 999px;
+    padding: 3px 8px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.notification-card-type {
+    margin: 7px 0 3px;
+    color: #6b7280;
+    font-size: 12px;
+}
+
+.notification-card-date {
+    color: #9ca3af;
+    font-size: 12px;
+}
+
+.notification-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.notification-card-actions button {
+    border: none;
+    background: #eef7f7;
+    color: #008c8c;
+    border-radius: 7px;
+    padding: 8px 11px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.notification-card-actions button:hover {
+    background: #dff0f0;
+}
+
+.notification-card-actions .delete-notification-button {
+    background: #fff1f2;
+    color: #dc2626;
+}
+
+.notification-card-actions .delete-notification-button:hover {
+    background: #ffe4e6;
+}
+
+.notifications-empty {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px;
+}
+
+.notifications-empty-icon,
+.notifications-loading-icon {
+    font-size: 42px;
+    margin-bottom: 15px;
+}
+
+.notifications-empty h2 {
+    margin: 0 0 8px;
+    color: #111827;
+}
+
+.notifications-empty p {
+    margin: 0;
+    color: #6b7280;
+}
+
+.notifications-error {
+    background: #fff1f2;
+    color: #b91c1c;
+    border: 1px solid #fecdd3;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 700px) {
+    .notifications-page {
+        padding: 25px 15px 50px;
+    }
+
+    .notifications-topbar {
+        gap: 12px;
+    }
+
+    .notifications-topbar h1 {
+        font-size: 26px;
+    }
+
+    .notification-card {
+        align-items: flex-start;
+        flex-wrap: wrap;
+        padding: 16px;
+    }
+
+    .notification-card-content {
+        width: calc(100% - 64px);
+    }
+
+    .notification-card-actions {
+        width: 100%;
+        justify-content: flex-end;
+        padding-left: 64px;
+    }
+}
+

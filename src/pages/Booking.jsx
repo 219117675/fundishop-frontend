@@ -1,632 +1,654 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import "./Booking.css";
+import { API_URL } from "../api";
 
 function Booking() {
     const { id } = useParams();
     const navigate = useNavigate();
 
     const [fundi, setFundi] = useState(null);
-
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
-
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
 
     const [formData, setFormData] = useState({
-        service: "",
-        date: "",
-        time: "",
-        address: "",
-        budget: "",
-        description: "",
+        serviceRequired: "",
+        scheduledDate: "",
+        scheduledTime: "",
+        jobLocation: "",
+        estimatedBudget: "",
+        jobDescription: "",
     });
 
-    useEffect(() => {
-        fetchFundi();
-    }, [id]);
-
-    const fetchFundi = async () => {
+    const fetchFundi = useCallback(async () => {
         try {
             setLoading(true);
             setError("");
 
             const response = await fetch(
-                `http://localhost:8080/api/fundiprofiles/${id}`
+                `${API_URL}/api/fundiprofiles/${id}`
             );
 
-            if (response.status === 404) {
-                setFundi(null);
-                return;
-            }
-
             if (!response.ok) {
-                throw new Error(
-                    "Failed to load Fundi profile."
-                );
+                throw new Error("Unable to load this fundi's profile.");
             }
 
             const data = await response.json();
-
             setFundi(data);
-
         } catch (err) {
-            console.error(
-                "Error loading Fundi:",
-                err
-            );
-
-            setError(
-                "Unable to load this Fundi at the moment."
-            );
-
+            setError(err.message || "Unable to load the fundi profile.");
         } finally {
             setLoading(false);
         }
-    };
+    }, [id]);
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            fetchFundi();
+        }, 0);
 
-        setFormData({
-            ...formData,
+        return () => clearTimeout(timer);
+    }, [fetchFundi]);
+
+    const handleChange = (event) => {
+        const { name, value } = event.target;
+
+        setFormData((previous) => ({
+            ...previous,
             [name]: value,
-        });
+        }));
     };
 
-    const getTradeName = (tradeCategory) => {
+    // Read authentication details from the existing browser session.
+    const getAuthDetails = () => {
+        const rawUser =
+            sessionStorage.getItem("fundiShopUser") ||
+            localStorage.getItem("fundiShopUser");
 
-        const tradeNames = {
-            ELECTRICAL: "Electrician",
-            PLUMBING: "Plumber",
-            HANDYMAN: "Handyman",
-            PAINTING: "Painter",
-            GENERAL: "General",
-        };
+        let storedUser;
 
-        return (
-            tradeNames[tradeCategory] ||
-            tradeCategory ||
-            "General"
-        );
-    };
-
-    const getInitials = (name) => {
-
-        if (!name) {
-            return "F";
+        try {
+            storedUser = rawUser ? JSON.parse(rawUser) : null;
+        } catch {
+            storedUser = null;
         }
 
-        return name
-            .split(" ")
-            .filter(Boolean)
-            .map((part) => part[0])
-            .join("")
-            .toUpperCase();
+        const token =
+            storedUser?.token ||
+            storedUser?.accessToken ||
+            storedUser?.jwtToken ||
+            sessionStorage.getItem("fundiShopToken") ||
+            localStorage.getItem("fundiShopToken") ||
+            sessionStorage.getItem("token") ||
+            localStorage.getItem("token") ||
+            sessionStorage.getItem("jwtToken") ||
+            localStorage.getItem("jwtToken");
+
+        const customerId =
+            storedUser?.id ??
+            storedUser?.user?.id;
+
+        return {
+            user: storedUser,
+            token,
+            customerId,
+        };
     };
 
-    const handleSubmit = async (e) => {
-
-        e.preventDefault();
+    const handleSubmit = async (event) => {
+        event.preventDefault();
 
         setError("");
         setSuccess("");
-        setSubmitting(true);
+
+        const { user, token, customerId } = getAuthDetails();
+
+        if (!user || !customerId || !token) {
+            setError(
+                "Your login session could not be read. Please log in again."
+            );
+            return;
+        }
+
+        if (user.role !== "HOMEOWNER") {
+            setError("Only homeowners can create bookings.");
+            return;
+        }
+
+        if (!fundi?.id) {
+            setError("The selected fundi could not be found.");
+            return;
+        }
+
+        if (fundi.verificationStatus !== "APPROVED") {
+            setError(
+                "You can only book a fundi whose profile has been approved."
+            );
+            return;
+        }
+
+        if (
+            !formData.serviceRequired.trim() ||
+            !formData.scheduledDate ||
+            !formData.scheduledTime ||
+            !formData.jobLocation.trim() ||
+            !formData.jobDescription.trim()
+        ) {
+            setError("Please complete all required fields.");
+            return;
+        }
+
+        const selectedDate = new Date(
+            `${formData.scheduledDate}T${formData.scheduledTime}`
+        );
+
+        if (
+            Number.isNaN(selectedDate.getTime()) ||
+            selectedDate.getTime() <= Date.now()
+        ) {
+            setError("Please select a future date and time.");
+            return;
+        }
+
+        if (
+            formData.estimatedBudget !== "" &&
+            (
+                !Number.isFinite(Number(formData.estimatedBudget)) ||
+                Number(formData.estimatedBudget) < 0
+            )
+        ) {
+            setError("Please enter a valid estimated budget.");
+            return;
+        }
 
         try {
+            setSubmitting(true);
 
-            /*
-             * Get logged-in homeowner
-             */
-            const storedUser =
-                localStorage.getItem(
-                    "fundiShopUser"
-                );
-
-            if (!storedUser) {
-
-                throw new Error(
-                    "You must be logged in as a homeowner to make a booking."
-                );
-            }
-
-            const user =
-                JSON.parse(storedUser);
-
-            /*
-             * Make sure the logged-in user is a homeowner
-             */
-            if (user.role !== "HOMEOWNER") {
-
-                throw new Error(
-                    "Only homeowners can make bookings."
-                );
-            }
-
-            /*
-             * Create booking object
-             */
-            const bookingData = {
-
-                customerId: user.id,
-
-                fundiProfileId: fundi.id,
-
-                scheduledDate:
-                formData.date,
-
-                scheduledTime:
-                formData.time,
-
-                serviceRequired:
-                formData.service,
-
-                jobLocation:
-                formData.address,
-
-                estimatedBudget:
-                    formData.budget
-                        ? Number(formData.budget)
-                        : null,
-
-                jobDescription:
-                formData.description,
-            };
-
-            console.log(
-                "BOOKING DATA:",
-                bookingData
-            );
-
-            /*
-             * Send booking to Spring Boot
-             */
             const response = await fetch(
-                "http://localhost:8080/api/bookings/create",
+                `${API_URL}/api/bookings/create`,
                 {
                     method: "POST",
-
                     headers: {
-                        "Content-Type":
-                            "application/json",
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
                     },
-
-                    body: JSON.stringify(
-                        bookingData
-                    ),
+                    body: JSON.stringify({
+                        customerId: Number(customerId),
+                        fundiProfileId: Number(fundi.id),
+                        scheduledDate: formData.scheduledDate,
+                        scheduledTime: formData.scheduledTime,
+                        serviceRequired:
+                            formData.serviceRequired.trim(),
+                        jobLocation: formData.jobLocation.trim(),
+                        estimatedBudget:
+                            formData.estimatedBudget !== ""
+                                ? Number(formData.estimatedBudget)
+                                : null,
+                        jobDescription:
+                            formData.jobDescription.trim(),
+                    }),
                 }
             );
 
-            const data =
-                await response.json();
+            const responseData = await response
+                .json()
+                .catch(() => ({}));
 
-            if (!response.ok) {
-
+            if (response.status === 401 || response.status === 403) {
                 throw new Error(
-                    data.message ||
-                    "Failed to create booking."
+                    "Your session was rejected by the server, or your account is not authorised to make this booking. Please sign in again."
                 );
             }
 
-            console.log(
-                "BOOKING CREATED:",
-                data
-            );
+            if (!response.ok) {
+                throw new Error(
+                    responseData.message ||
+                    responseData.error ||
+                    "We couldn't complete your booking. Please try again."
+                );
+            }
 
             setSuccess(
-                "Your booking has been submitted successfully!"
+                "Your booking request has been submitted successfully!"
             );
 
-            /*
-             * Clear form
-             */
             setFormData({
-                service: "",
-                date: "",
-                time: "",
-                address: "",
-                budget: "",
-                description: "",
+                serviceRequired: "",
+                scheduledDate: "",
+                scheduledTime: "",
+                jobLocation: "",
+                estimatedBudget: "",
+                jobDescription: "",
             });
 
+            setTimeout(() => {
+                navigate("/homeowner-dashboard");
+            }, 1500);
         } catch (err) {
-
-            console.error(
-                "BOOKING ERROR:",
-                err
-            );
-
             setError(
-                err.message ||
-                "Unable to create booking."
+                err.message || "Something went wrong. Please try again."
             );
-
         } finally {
-
             setSubmitting(false);
         }
     };
 
-    /*
-     * Loading
-     */
-    if (loading) {
-
-        return (
-            <main className="booking-page">
-
-                <div className="booking-not-found">
-
-                    <div className="booking-loading-spinner"></div>
-
-                    <h1>
-                        Loading Fundi...
-                    </h1>
-
-                    <p>
-                        Please wait while we load
-                        the Fundi information.
-                    </p>
-
-                </div>
-
-            </main>
-        );
-    }
-
-    /*
-     * Error
-     */
-    if (error && !fundi) {
-
-        return (
-            <main className="booking-page">
-
-                <div className="booking-not-found">
-
-                    <h1>
-                        Something went wrong
-                    </h1>
-
-                    <p>
-                        {error}
-                    </p>
-
-                    <button
-                        type="button"
-                        className="back-button"
-                        onClick={fetchFundi}
-                    >
-                        Try Again
-                    </button>
-
-                </div>
-
-            </main>
-        );
-    }
-
-    /*
-     * Fundi not found
-     */
-    if (!fundi) {
-
-        return (
-            <main className="booking-page">
-
-                <div className="booking-not-found">
-
-                    <h1>
-                        Fundi not found
-                    </h1>
-
-                    <p>
-                        We couldn't find the Fundi
-                        you are trying to book.
-                    </p>
-
-                    <Link
-                        to="/fundis"
-                        className="back-button"
-                    >
-                        Back to Fundis
-                    </Link>
-
-                </div>
-
-            </main>
-        );
-    }
-
     const fullName =
-        fundi.user?.fullName ||
-        "Unnamed Fundi";
+        fundi?.user?.fullName ||
+        fundi?.fullName ||
+        "Fundi";
 
-    const trade =
-        getTradeName(
-            fundi.tradeCategory
+    const tradeCategory =
+        fundi?.tradeCategory ||
+        "Professional services";
+
+    const initials = fullName
+        .split(" ")
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0])
+        .join("")
+        .toUpperCase();
+
+    const formatCurrency = (amount) => {
+        if (amount === null || amount === undefined || amount === "") {
+            return "Not specified";
+        }
+
+        const numericAmount = Number(amount);
+
+        if (!Number.isFinite(numericAmount)) {
+            return String(amount);
+        }
+
+        return new Intl.NumberFormat("en-ZA", {
+            style: "currency",
+            currency: "ZAR",
+            maximumFractionDigits: 2,
+        }).format(numericAmount);
+    };
+
+    if (loading) {
+        return (
+            <main className="booking-page">
+                <div className="booking-container">
+                    <div className="booking-state-container">
+                        <div className="booking-state-card">
+                            <div
+                                className="booking-loader"
+                                role="status"
+                                aria-label="Loading fundi details"
+                            />
+                            <h2>Loading fundi details</h2>
+                            <p className="booking-state-message">
+                                Please wait while we prepare your booking.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </main>
         );
+    }
 
-    const verified =
-        fundi.verificationStatus ===
-        "VERIFIED";
+    if (!fundi) {
+        return (
+            <main className="booking-page">
+                <div className="booking-container">
+                    <div className="booking-state-container">
+                        <div className="booking-state-card booking-state-error">
+                            <div className="booking-state-icon">!</div>
+                            <h1>Fundi unavailable</h1>
+                            <p className="booking-state-message">
+                                {error ||
+                                    "We couldn't find the selected fundi."}
+                            </p>
+
+                            <div className="booking-state-actions">
+                                <button
+                                    type="button"
+                                    className="booking-secondary-button"
+                                    onClick={() => navigate(-1)}
+                                >
+                                    Go back
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        );
+    }
 
     return (
         <main className="booking-page">
-
             <div className="booking-container">
-
-                <Link
-                    to={`/fundis/${fundi.id}`}
+                <button
+                    type="button"
                     className="back-link"
+                    onClick={() => navigate(-1)}
                 >
-                    ← Back to Profile
-                </Link>
+                    <span aria-hidden="true">←</span> Back
+                </button>
+
+                <header className="booking-header">
+                    <span className="booking-eyebrow">
+                        BOOK A PROFESSIONAL
+                    </span>
+
+                    <h1>Make a booking</h1>
+
+                    <p>
+                        Tell us what you need, choose a convenient time,
+                        and send your booking request to your selected fundi.
+                    </p>
+                </header>
+
+                {error && (
+                    <div className="booking-alert booking-error" role="alert">
+                        <span className="booking-alert-icon">!</span>
+                        <span>{error}</span>
+
+                        <button
+                            type="button"
+                            className="booking-alert-dismiss"
+                            aria-label="Dismiss error"
+                            onClick={() => setError("")}
+                        >
+                            ×
+                        </button>
+                    </div>
+                )}
+
+                {success && (
+                    <div
+                        className="booking-alert booking-success"
+                        role="status"
+                    >
+                        <span className="booking-alert-icon">✓</span>
+                        <span>{success}</span>
+                    </div>
+                )}
 
                 <div className="booking-layout">
-
-                    {/* Booking Information */}
-
-                    <section className="booking-info">
-
-                        <span className="booking-label">
-                            BOOK A FUNDI
-                        </span>
-
-                        <h1>
-                            Book {fullName}
-                        </h1>
-
-                        <p className="booking-description">
-                            Send your job request to
-                            this trusted professional
-                            and provide the details
-                            needed to get the job started.
-                        </p>
-
-                        <div className="selected-fundi">
-
-                            <div className="booking-avatar">
-                                {getInitials(
-                                    fullName
-                                )}
-                            </div>
-
-                            <div>
-
-                                <h3>
-                                    {fullName}
-                                </h3>
-
-                                <p>
-                                    {trade}
-                                </p>
-
-                                <span>
-                                    📍 Service area:{" "}
-                                    {fundi.serviceAreaRadiusKm ||
-                                        0}{" "}
-                                    km
-                                </span>
-
-                            </div>
-
-                            {verified && (
-                                <span className="verified-badge">
-                                    ✓ Verified
-                                </span>
-                            )}
-
-                        </div>
-
-                        <div className="booking-note">
-
-                            <strong>
-                                Why book through FundiShop?
-                            </strong>
-
-                            <p>
-                                FundiShop helps you
-                                connect with trusted
-                                local professionals
-                                and keeps your booking
-                                information organised
-                                in one place.
-                            </p>
-
-                        </div>
-
-                    </section>
-
-                    {/* Booking Form */}
-
                     <section className="booking-form-card">
-
-                        <h2>
-                            Job details
-                        </h2>
-
-                        <p className="form-intro">
-                            Tell us what you need help with.
-                        </p>
-
-                        {error && (
-                            <div className="error-message">
-                                {error}
+                        <div className="booking-card-heading">
+                            <div className="booking-step-number">01</div>
+                            <div>
+                                <h2>Booking details</h2>
+                                <p>
+                                    Provide the information needed to plan
+                                    your service.
+                                </p>
                             </div>
-                        )}
-
-                        {success && (
-                            <div className="success-message">
-                                {success}
-                            </div>
-                        )}
+                        </div>
 
                         <form
+                            className="booking-form"
                             onSubmit={handleSubmit}
                         >
-
                             <div className="form-group">
-
-                                <label htmlFor="service">
+                                <label htmlFor="serviceRequired">
                                     Service required
+                                    <span className="required-mark">*</span>
                                 </label>
-
-                                <select
-                                    id="service"
-                                    name="service"
-                                    value={formData.service}
+                                <input
+                                    id="serviceRequired"
+                                    type="text"
+                                    name="serviceRequired"
+                                    value={formData.serviceRequired}
                                     onChange={handleChange}
+                                    placeholder="e.g. Plumbing repair"
                                     required
+                                />
+                                <span className="field-hint">
+                                    Briefly name the service you need.
+                                </span>
+                            </div>
+
+                            <div className="booking-section-label">
+                                <span
+                                    className="booking-section-icon"
+                                    aria-hidden="true"
                                 >
-
-                                    <option value="">
-                                        Select a service
-                                    </option>
-
-                                    <option value="installation">
-                                        Installation
-                                    </option>
-
-                                    <option value="repair">
-                                        Repair
-                                    </option>
-
-                                    <option value="maintenance">
-                                        Maintenance
-                                    </option>
-
-                                    <option value="inspection">
-                                        Inspection
-                                    </option>
-
-                                    <option value="other">
-                                        Other
-                                    </option>
-
-                                </select>
-
+                                    ◷
+                                </span>
+                                When do you need the service?
                             </div>
 
                             <div className="form-row">
-
                                 <div className="form-group">
-
-                                    <label htmlFor="date">
+                                    <label htmlFor="scheduledDate">
                                         Preferred date
+                                        <span className="required-mark">*</span>
                                     </label>
-
                                     <input
+                                        id="scheduledDate"
                                         type="date"
-                                        id="date"
-                                        name="date"
-                                        value={formData.date}
+                                        name="scheduledDate"
+                                        value={formData.scheduledDate}
                                         onChange={handleChange}
+                                        min={new Date().toLocaleDateString("en-CA")}
                                         required
                                     />
-
                                 </div>
 
                                 <div className="form-group">
-
-                                    <label htmlFor="time">
+                                    <label htmlFor="scheduledTime">
                                         Preferred time
+                                        <span className="required-mark">*</span>
                                     </label>
-
                                     <input
+                                        id="scheduledTime"
                                         type="time"
-                                        id="time"
-                                        name="time"
-                                        value={formData.time}
+                                        name="scheduledTime"
+                                        value={formData.scheduledTime}
                                         onChange={handleChange}
                                         required
                                     />
-
                                 </div>
+                            </div>
 
+                            <div className="booking-form-divider" />
+
+                            <div className="booking-section-label">
+                                <span
+                                    className="booking-section-icon"
+                                    aria-hidden="true"
+                                >
+                                    ⌖
+                                </span>
+                                Where is the job?
                             </div>
 
                             <div className="form-group">
-
-                                <label htmlFor="address">
-                                    Job location
+                                <label htmlFor="jobLocation">
+                                    Service address
+                                    <span className="required-mark">*</span>
                                 </label>
-
                                 <input
+                                    id="jobLocation"
                                     type="text"
-                                    id="address"
-                                    name="address"
-                                    value={formData.address}
+                                    name="jobLocation"
+                                    value={formData.jobLocation}
                                     onChange={handleChange}
-                                    placeholder="Enter the address where the work is needed"
+                                    placeholder="Enter the full service address"
+                                    autoComplete="street-address"
                                     required
                                 />
-
+                                <span className="field-hint">
+                                    Include the suburb and any useful directions.
+                                </span>
                             </div>
 
                             <div className="form-group">
-
-                                <label htmlFor="budget">
-
+                                <label htmlFor="estimatedBudget">
                                     Estimated budget
-
-                                    <span className="optional">
+                                    <span className="optional-label">
                                         Optional
                                     </span>
-
                                 </label>
+                                <div className="booking-budget-field">
+                                    <span className="booking-currency">R</span>
+                                    <input
+                                        id="estimatedBudget"
+                                        type="number"
+                                        name="estimatedBudget"
+                                        value={formData.estimatedBudget}
+                                        onChange={handleChange}
+                                        placeholder="e.g. 1500"
+                                        min="0"
+                                        step="0.01"
+                                    />
+                                </div>
+                                <span className="field-hint">
+                                    Your estimated budget in South African rand.
+                                </span>
+                            </div>
 
-                                <input
-                                    type="number"
-                                    id="budget"
-                                    name="budget"
-                                    min="0"
-                                    value={formData.budget}
-                                    onChange={handleChange}
-                                    placeholder="R 0.00"
-                                />
+                            <div className="booking-form-divider" />
 
+                            <div className="booking-section-label">
+                                <span
+                                    className="booking-section-icon"
+                                    aria-hidden="true"
+                                >
+                                    ☰
+                                </span>
+                                Tell us about the job
                             </div>
 
                             <div className="form-group">
-
-                                <label htmlFor="description">
-                                    Describe the job
+                                <label htmlFor="jobDescription">
+                                    Job description
+                                    <span className="required-mark">*</span>
                                 </label>
-
                                 <textarea
-                                    id="description"
-                                    name="description"
-                                    rows="5"
-                                    value={formData.description}
+                                    id="jobDescription"
+                                    name="jobDescription"
+                                    value={formData.jobDescription}
                                     onChange={handleChange}
-                                    placeholder="Tell the Fundi what needs to be done..."
+                                    placeholder="Describe the problem, the work required, and any important details..."
+                                    rows="5"
                                     required
-                                ></textarea>
-
+                                />
+                                <span className="field-hint">
+                                    Include details that will help the fundi
+                                    understand your requirements.
+                                </span>
                             </div>
 
-                            <button
-                                type="submit"
-                                className="confirm-booking-button"
-                                disabled={submitting}
-                            >
+                            <div className="booking-form-footer">
+                                <button
+                                    type="submit"
+                                    className="booking-submit"
+                                    disabled={submitting || Boolean(success)}
+                                >
+                                    {submitting ? (
+                                        <>
+                                            <span
+                                                className="booking-button-spinner"
+                                                aria-hidden="true"
+                                            />
+                                            Submitting booking...
+                                        </>
+                                    ) : success ? (
+                                        "Booking submitted"
+                                    ) : (
+                                        "Confirm booking request"
+                                    )}
+                                </button>
 
-                                {submitting
-                                    ? "Submitting Booking..."
-                                    : "Confirm Booking"}
-
-                            </button>
-
+                                <p className="booking-submit-note">
+                                    Your request will be sent to the selected
+                                    fundi for the next steps.
+                                </p>
+                            </div>
                         </form>
-
                     </section>
 
+                    <aside className="booking-sidebar">
+                        <section className="booking-fundi-card">
+                            <div className="booking-sidebar-heading">
+                                <span className="booking-sidebar-eyebrow">
+                                    YOUR SELECTED PROFESSIONAL
+                                </span>
+                                <h2>Booking with</h2>
+                            </div>
+
+                            <div className="booking-fundi-identity">
+                                <div className="booking-fundi-avatar">
+                                    {initials || "F"}
+                                </div>
+
+                                <div className="booking-fundi-details">
+                                    <h3>{fullName}</h3>
+                                    <p>{tradeCategory}</p>
+
+                                    <span
+                                        className={`booking-verification ${
+                                            fundi.verificationStatus === "APPROVED"
+                                                ? "is-approved"
+                                                : "is-pending"
+                                        }`}
+                                    >
+                                        {fundi.verificationStatus === "APPROVED"
+                                            ? "✓ Verified professional"
+                                            : "Verification pending"}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="booking-fundi-rates">
+                                <div className="booking-rate-row">
+                                    <span>Hourly rate</span>
+                                    <strong>
+                                        {formatCurrency(fundi.hourlyRate)}
+                                    </strong>
+                                </div>
+
+                                <div className="booking-rate-row">
+                                    <span>Callout fee</span>
+                                    <strong>
+                                        {formatCurrency(fundi.calloutFee)}
+                                    </strong>
+                                </div>
+                            </div>
+
+                            <p className="booking-rates-note">
+                                Final costs may depend on the scope of work
+                                and any additional materials required.
+                            </p>
+                        </section>
+
+                        <section className="booking-help-card">
+                            <div
+                                className="booking-help-icon"
+                                aria-hidden="true"
+                            >
+                                ?
+                            </div>
+
+                            <div>
+                                <h3>Need help with your booking?</h3>
+                                <p>
+                                    Double-check your job address and
+                                    description before submitting.
+                                </p>
+                                <button
+                                    type="button"
+                                    className="booking-help-link"
+                                    onClick={() => navigate(-1)}
+                                >
+                                    Return to fundi profile
+                                </button>
+                            </div>
+                        </section>
+                    </aside>
                 </div>
-
             </div>
-
         </main>
     );
 }

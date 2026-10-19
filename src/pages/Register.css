@@ -1,324 +1,438 @@
+
 .register-page {
     min-height: calc(100vh - 72px);
-    background: #f7f9f8;
-
+    padding: 48px 20px;
+    box-sizing: border-box;
     display: flex;
-    justify-content: center;
     align-items: center;
-
-    padding: 50px 20px;
+    justify-content: center;
+    background:
+            radial-gradient(ellipse at top left, rgba(0, 140, 140, 0.09), transparent 42%),
+            #f5f8f7;
+    font-family: inherit;
 }
 
-.register-card {
+.register-container {
     width: 100%;
-    max-width: 500px;
-
-    background: white;
-
-    padding: 40px;
-
-    border-radius: 14px;
-
-    border: 1px solid #e1eaea;
-
-    box-shadow:
-            0 8px 30px rgba(0, 0, 0, 0.06);
+    max-width: 650px;
+    padding: 42px;
+    box-sizing: border-box;
+    background: #ffffff;
+    border: 1px solid #e3ebea;
+    border-radius: 20px;
+    box-shadow: 0 18px 55px rgba(22, 49, 48, 0.08);
 }
 
 .register-header {
-    text-align: center;
     margin-bottom: 28px;
-}
-
-.register-label {
-    color: #008c8c;
-
-    font-size: 12px;
-    font-weight: 700;
-
-    letter-spacing: 1.5px;
+    text-align: center;
 }
 
 .register-header h1 {
-    margin: 10px 0 8px;
-
+    margin: 0 0 10px;
     color: #172121;
-
-    font-size: 30px;
+    font-size: clamp(27px, 5vw, 34px);
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -1px;
 }
 
 .register-header p {
-    margin: 0;
-
+    max-width: 440px;
+    margin: 0 auto;
     color: #687575;
-
     font-size: 14px;
+    line-height: 1.7;
 }
 
-.form-group {
-    margin-bottom: 18px;
+.register-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
-.form-group label,
-.role-section > label {
-    display: block;
+.account-type-fieldset {
+    min-width: 0;
+    margin: 0 0 4px;
+    padding: 0;
+    border: 0;
+}
 
-    margin-bottom: 7px;
-
-    color: #172121;
-
+.account-type-fieldset legend {
+    margin-bottom: 12px;
+    color: #263737;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 800;
 }
 
-.form-group input {
-    width: 100%;
-
-    box-sizing: border-box;
-
-    padding: 12px 13px;
-
-    border: 1px solid #d7e0e0;
-    border-radius: 7px;
-
-    font-family: inherit;
-    font-size: 14px;
-
-    outline: none;
-
-    transition: 0.2s;
-}
-
-.form-group input:focus {
-    border-color: #008c8c;
-
-    box-shadow:
-            0 0 0 3px rgba(0, 140, 140, 0.1);
-}
-
-.role-section {
-    margin: 22px 0;
-}
-
-.role-options {
+.account-type-options {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
 }
 
-.role-option {
+.account-type-option {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 10px;
-
-    padding: 13px;
-
-    border: 1px solid #d7e0e0;
-    border-radius: 8px;
-
+    gap: 12px;
+    min-width: 0;
+    padding: 15px;
+    border: 1px solid #dce6e5;
+    border-radius: 12px;
+    background: #ffffff;
     cursor: pointer;
-
-    font-size: 14px;
-
-    transition: 0.2s;
+    transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 
-.role-option:hover {
+.account-type-option:hover {
+    border-color: #77baba;
+}
+
+.account-type-option.selected {
     border-color: #008c8c;
+    background: #f0fafa;
+    box-shadow: 0 0 0 1px #008c8c;
 }
 
-.role-option input {
+.account-type-option input {
+    position: absolute;
+    top: 10px;
+    right: 10px;
     accent-color: #008c8c;
 }
 
-.register-submit {
-    width: 100%;
-
-    padding: 14px;
-
-    border: none;
-    border-radius: 7px;
-
-    background: #008c8c;
-    color: white;
-
-    font-size: 15px;
-    font-weight: 700;
-
-    cursor: pointer;
+.account-type-icon {
+    display: flex;
+    flex: 0 0 42px;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: #e7f5f4;
+    color: #007d7d;
+    font-size: 17px;
+    font-weight: 800;
 }
 
-.register-submit:hover {
-    background: #006f6f;
+.account-type-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-right: 10px;
 }
 
-.register-submit:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.success-message,
-.error-message {
-    padding: 12px;
-
-    margin-bottom: 20px;
-
-    border-radius: 7px;
-
+.account-type-copy strong {
+    color: #203333;
     font-size: 13px;
 }
 
-.success-message {
-    background: #e7f7f2;
-    color: #176b55;
+.account-type-copy small {
+    color: #748280;
+    font-size: 11px;
+    line-height: 1.5;
 }
 
-.error-message {
-    background: #fff0f0;
-    color: #b42318;
+.register-section-heading {
+    padding-top: 6px;
 }
 
-.login-link {
-    margin: 22px 0 0;
-
-    text-align: center;
-
-    color: #687575;
-
-    font-size: 14px;
+.register-section-heading h2,
+.fundi-registration-heading h2 {
+    margin: 0 0 6px;
+    color: #203333;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
 }
 
-.login-link a {
-    color: #008c8c;
+.register-section-heading p,
+.fundi-registration-heading p {
+    margin: 0;
+    color: #778381;
+    font-size: 12px;
+    line-height: 1.7;
+}
 
+.register-form .auth-field {
+    min-width: 0;
+}
+
+.register-form .auth-field label {
+    display: block;
+    margin-bottom: 8px;
+    color: #263737;
+    font-size: 13px;
     font-weight: 700;
-
-    text-decoration: none;
 }
 
-.login-link a:hover {
-    text-decoration: underline;
+.register-form .auth-field input,
+.register-form .auth-field select,
+.register-form .auth-field textarea {
+    display: block;
+    width: 100%;
+    min-height: 48px;
+    padding: 12px 14px;
+    box-sizing: border-box;
+    border: 1px solid #d9e3e2;
+    border-radius: 10px;
+    outline: none;
+    background: #ffffff;
+    color: #172121;
+    font: inherit;
+    font-size: 14px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-@media (max-width: 550px) {
+.register-form .auth-field textarea {
+    min-height: 110px;
+    line-height: 1.6;
+    resize: vertical;
+}
 
-    .register-card {
-        padding: 28px 22px;
+.register-form .auth-field input::placeholder,
+.register-form .auth-field textarea::placeholder {
+    color: #9aa7a7;
+}
+
+.register-form .auth-field input:focus,
+.register-form .auth-field select:focus,
+.register-form .auth-field textarea:focus {
+    border-color: #008c8c;
+    box-shadow: 0 0 0 4px rgba(0, 140, 140, 0.1);
+}
+
+.register-form .auth-field input:disabled,
+.register-form .auth-field select:disabled,
+.register-form .auth-field textarea:disabled {
+    background: #f4f6f6;
+    cursor: not-allowed;
+}
+
+.register-form .auth-password-wrap input {
+    padding-right: 66px;
+}
+
+.fundi-registration-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 8px;
+    padding: 24px;
+    border: 1px solid #dcebe9;
+    border-radius: 14px;
+    background: #f7fbfa;
+}
+
+.fundi-registration-heading {
+    padding-bottom: 17px;
+    border-bottom: 1px solid #e1ecea;
+}
+
+.fundi-registration-heading .auth-eyebrow {
+    margin-bottom: 8px;
+}
+
+.fundi-registration-heading h2 {
+    font-size: 20px;
+}
+
+.register-rate-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.auth-field-hint {
+    margin: 7px 0 0;
+    color: #83908e;
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+.register-submit-button {
+    margin-top: 2px;
+}
+
+.register-terms-note {
+    margin: -7px 0 0;
+    color: #879391;
+    font-size: 11px;
+    line-height: 1.7;
+    text-align: center;
+}
+
+@media (max-width: 600px) {
+    .register-page {
+        min-height: calc(100vh - 60px);
+        padding: 28px 14px;
     }
 
-    .role-options {
+    .register-container {
+        padding: 30px 22px;
+        border-radius: 16px;
+    }
+
+    .account-type-options {
         grid-template-columns: 1fr;
     }
 
+    .account-type-option {
+        padding: 13px;
+    }
 
-
-        /* =========================================
-           FUNDI REGISTRATION SECTION
-           ========================================= */
-
-    .fundi-section {
-    margin-top: 28px;
-    padding-top: 25px;
-
-    border-top: 1px solid #e1eaea;
+    .fundi-registration-section {
+        padding: 18px;
+    }
 }
 
-    .fundi-section-header {
-        margin-bottom: 22px;
+@media (max-width: 420px) {
+    .register-rate-grid {
+        grid-template-columns: 1fr;
     }
 
-    .fundi-section-header h2 {
-        margin: 8px 0 6px;
-
-        color: #172121;
-
-        font-size: 20px;
+    .register-container {
+        padding: 26px 17px;
     }
+}
 
-    .fundi-section-header p {
-        margin: 0;
-
-        color: #687575;
-
-        font-size: 13px;
-        line-height: 1.5;
+@media (prefers-reduced-motion: reduce) {
+    .account-type-option {
+        transition: none;
     }
+}
+       /* Shared authentication styles used by Register.jsx */
 
+   .register-container .auth-brand {
+       display: flex;
+       justify-content: center;
+       align-items: center;
+       gap: 10px;
+       margin-bottom: 34px;
+       color: #172121;
+       font-size: 22px;
+       font-weight: 800;
+       text-decoration: none;
+   }
 
-    /* =========================================
-       SELECT
-       ========================================= */
+.register-container .auth-brand-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    background: #008c8c;
+    color: #ffffff;
+    font-size: 21px;
+}
 
-    .form-group select {
-        width: 100%;
+.register-container .auth-brand-accent {
+    color: #008c8c;
+}
 
-        box-sizing: border-box;
+.register-container .auth-eyebrow {
+    display: inline-block;
+    margin-bottom: 12px;
+    color: #008c8c;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.8px;
+}
 
-        padding: 12px 13px;
+.register-container .auth-message {
+    margin-bottom: 20px;
+    padding: 12px 14px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.6;
+}
 
-        border: 1px solid #d7e0e0;
-        border-radius: 7px;
+.register-container .auth-success {
+    border-color: #b7e4ca;
+    background: #eaf8f0;
+    color: #176b45;
+}
 
-        background: white;
+.register-container .auth-error {
+    border-color: #f2c6c6;
+    background: #fff1f1;
+    color: #a62626;
+}
 
-        color: #172121;
+.register-container .auth-password-wrap {
+    position: relative;
+}
 
-        font-family: inherit;
-        font-size: 14px;
+.register-container .auth-password-wrap input {
+    padding-right: 66px;
+}
 
-        outline: none;
+.register-container .auth-password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    padding: 5px;
+    transform: translateY(-50%);
+    border: 0;
+    background: transparent;
+    color: #008080;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
 
-        cursor: pointer;
+.register-container .auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 30px 0 20px;
+    color: #91a09f;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.3px;
+}
 
-        transition: 0.2s;
+.register-container .auth-divider::before,
+.register-container .auth-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #e7edec;
+}
+
+.register-container .auth-switch {
+    margin: 0;
+    color: #687575;
+    text-align: center;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.register-container .auth-switch a {
+    color: #008080;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.register-container .auth-switch a:hover {
+    text-decoration: underline;
+}
+
+.register-container .auth-spinner {
+    width: 15px;
+    height: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.45);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: auth-spin 0.7s linear infinite;
+}
+
+@keyframes auth-spin {
+    to {
+        transform: rotate(360deg);
     }
-
-    .form-group select:focus {
-        border-color: #008c8c;
-
-        box-shadow:
-                0 0 0 3px rgba(0, 140, 140, 0.1);
-    }
-
-
-    /* =========================================
-       TEXTAREA
-       ========================================= */
-
-    .form-group textarea {
-        width: 100%;
-
-        box-sizing: border-box;
-
-        padding: 12px 13px;
-
-        border: 1px solid #d7e0e0;
-        border-radius: 7px;
-
-        font-family: inherit;
-        font-size: 14px;
-
-        line-height: 1.5;
-
-        resize: vertical;
-
-        outline: none;
-
-        transition: 0.2s;
-    }
-
-    .form-group textarea:focus {
-        border-color: #008c8c;
-
-        box-shadow:
-                0 0 0 3px rgba(0, 140, 140, 0.1);
-    }
-
-    .form-group textarea::placeholder,
-    .form-group input::placeholder {
-        color: #9aa7a7;
-    }
-
-
 }

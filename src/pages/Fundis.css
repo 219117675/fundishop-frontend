@@ -1,456 +1,1007 @@
+/* =========================================
+   FUNDISHOP — FIND A FUNDI
+   Modern, responsive professional directory
+========================================= */
 
 .fundis-page {
     min-height: calc(100vh - 72px);
-    background: #f7f9f8;
+    overflow: hidden;
+    background: #f7faf9;
+    color: #163638;
 }
 
-/* Header */
+.fundis-page *,
+.fundis-page *::before,
+.fundis-page *::after {
+    box-sizing: border-box;
+}
+
+/* =========================================
+   HERO
+========================================= */
 
 .fundis-header {
-    background: white;
-    border-bottom: 1px solid #e4eeee;
+    position: relative;
+    overflow: hidden;
+    background:
+            radial-gradient(ellipse at 85% 25%, rgba(27, 178, 151, 0.13), transparent 35%),
+            linear-gradient(135deg, #eff9f5 0%, #f7fbf9 55%, #e6f5ef 100%);
+    border-bottom: 1px solid #e2eee8;
 }
 
-.fundis-header > div {
-    max-width: 1200px;
+.fundis-header::before {
+    position: absolute;
+    top: -150px;
+    right: -100px;
+    width: 420px;
+    height: 420px;
+    border: 1px solid rgba(0, 143, 131, 0.09);
+    border-radius: 50%;
+    content: "";
+    pointer-events: none;
+}
+
+.fundis-header::after {
+    position: absolute;
+    right: 65px;
+    bottom: -210px;
+    width: 340px;
+    height: 340px;
+    border: 1px solid rgba(0, 143, 131, 0.08);
+    border-radius: 50%;
+    content: "";
+    pointer-events: none;
+}
+
+.fundis-header-inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+    align-items: center;
+    gap: 48px;
+    width: 100%;
+    max-width: 1260px;
+    min-height: 390px;
     margin: 0 auto;
-    padding: 55px 24px;
+    padding: 60px 32px 76px;
 }
 
-.fundis-header span {
-    color: #008c8c;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
+.fundis-header-copy {
+    max-width: 690px;
+}
+
+.fundis-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 22px;
+    color: #087c70;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.8px;
+}
+
+.fundis-eyebrow-dot {
+    width: 9px;
+    height: 9px;
+    margin: 0 !important;
+    border-radius: 50%;
+    background: #11a58c;
+    box-shadow: 0 0 0 4px rgba(17, 165, 140, 0.12);
 }
 
 .fundis-header h1 {
-    margin: 10px 0;
-    color: #172121;
-    font-size: 42px;
-}
-
-.fundis-header p {
-    color: #687575;
-    font-size: 16px;
-}
-
-/* Search */
-
-.fundis-search {
-    max-width: 1200px;
-
-    margin: 30px auto;
-
-    padding: 20px;
-
-    display: grid;
-
-    grid-template-columns:
-        2fr 1fr 1fr auto;
-
-    gap: 12px;
-
-    background: white;
-
-    border: 1px solid #e1eaea;
-
-    border-radius: 10px;
-
-    box-shadow:
-            0 5px 20px rgba(0, 0, 0, 0.04);
-}
-
-.fundis-search input,
-.fundis-search select {
-    padding: 13px 14px;
-
-    border: 1px solid #d8e2e2;
-
-    border-radius: 6px;
-
-    outline: none;
-
-    color: #172121;
-
-    background: white;
-
-    font-size: 14px;
-}
-
-.fundis-search input:focus,
-.fundis-search select:focus {
-    border-color: #008c8c;
-}
-
-.fundis-search button {
-    padding: 0 24px;
-
-    border: none;
-
-    border-radius: 6px;
-
-    background: #008c8c;
-
-    color: white;
-
-    font-weight: 600;
-
-    cursor: pointer;
-
-    transition: background 0.2s ease;
-}
-
-.fundis-search button:hover {
-    background: #006f6f;
-}
-
-/* Results */
-
-.fundis-results {
-    max-width: 1200px;
-
-    margin: 45px auto;
-
-    padding: 0 24px 70px;
-}
-
-.results-heading {
-    display: flex;
-
-    justify-content: space-between;
-
-    align-items: center;
-
-    margin-bottom: 20px;
-}
-
-.results-heading h2 {
     margin: 0;
-
-    color: #172121;
-
-    font-size: 24px;
+    color: #173b3b;
+    font-size: clamp(38px, 4.2vw, 58px);
+    font-weight: 800;
+    line-height: 1.09;
+    letter-spacing: -2.5px;
 }
 
-.results-heading span {
-    color: #687575;
-
-    font-size: 14px;
+.fundis-header h1 span {
+    display: inline;
+    margin: 0;
+    color: #008f83;
+    font-size: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
 }
 
-/* Grid */
-
-.fundis-grid {
-    display: grid;
-
-    grid-template-columns:
-        repeat(2, 1fr);
-
-    gap: 20px;
+.fundis-header-copy > p {
+    max-width: 570px;
+    margin: 22px 0 0;
+    color: #627977;
+    font-size: 16px;
+    line-height: 1.8;
 }
 
-/* Card */
-
-.fundi-card {
+.fundis-header-points {
     display: flex;
-
-    gap: 20px;
-
-    padding: 24px;
-
-    background: white;
-
-    border: 1px solid #e1eaea;
-
-    border-radius: 12px;
-
-    transition:
-            transform 0.2s ease,
-            box-shadow 0.2s ease;
+    flex-wrap: wrap;
+    gap: 13px 22px;
+    margin-top: 27px;
 }
 
-.fundi-card:hover {
-    transform: translateY(-3px);
-
-    box-shadow:
-            0 10px 25px rgba(0, 0, 0, 0.07);
-}
-
-/* Avatar */
-
-.fundi-avatar {
-    min-width: 70px;
-
-    width: 70px;
-
-    height: 70px;
-
-    display: flex;
-
+.fundis-header-points > span {
+    display: inline-flex;
     align-items: center;
-
-    justify-content: center;
-
-    border-radius: 50%;
-
-    background: #e5f6f6;
-
-    color: #008c8c;
-
-    font-size: 20px;
-
+    gap: 8px;
+    color: #365955;
+    font-size: 12px;
     font-weight: 700;
 }
 
-/* Information */
-
-.fundi-info {
-    flex: 1;
-
-    min-width: 0;
-}
-
-.fundi-name {
-    display: flex;
-
+.fundis-point-check {
+    display: inline-flex;
     align-items: center;
-
-    flex-wrap: wrap;
-
-    gap: 8px;
+    justify-content: center;
+    width: 19px;
+    height: 19px;
+    margin: 0 !important;
+    border-radius: 50%;
+    background: #d9f1e7;
+    color: #07816e;
+    font-size: 12px;
+    letter-spacing: 0;
 }
 
-.fundi-name h3 {
+/* Decorative hero illustration — no image file required */
+
+.fundis-header-visual {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 260px;
+}
+
+.fundis-visual-circle {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 230px;
+    height: 230px;
+    border: 1px solid rgba(0, 143, 131, 0.13);
+    border-radius: 50%;
+    background: linear-gradient(145deg, #dff3eb, #c9e9dc);
+    box-shadow:
+            0 0 0 22px rgba(0, 143, 131, 0.035),
+            0 0 0 44px rgba(0, 143, 131, 0.025);
+}
+
+.fundis-tool-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 130px;
+    height: 130px;
+    margin: 0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 36px;
+    background: linear-gradient(145deg, #ffffff, #eff9f5);
+    box-shadow: 0 18px 45px rgba(28, 98, 78, 0.12);
+    font-size: 62px;
+    transform: rotate(-8deg);
+}
+
+.fundis-visual-card {
+    position: absolute;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 210px;
+    padding: 15px 17px;
+    border: 1px solid rgba(221, 237, 230, 0.95);
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 12px 32px rgba(23, 71, 59, 0.1);
+    backdrop-filter: blur(8px);
+}
+
+.fundis-visual-card-top {
+    top: 12px;
+    right: -2px;
+}
+
+.fundis-visual-card-bottom {
+    bottom: 10px;
+    left: -14px;
+}
+
+.fundis-visual-card-icon,
+.fundis-visual-star {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 37px;
+    height: 37px;
+    flex-shrink: 0;
+    margin: 0 !important;
+    border-radius: 11px;
+    background: #e4f7ed;
+    color: #07845f;
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: 0;
+}
+
+.fundis-visual-star {
+    background: #fff4d8;
+    color: #c58a19;
+}
+
+.fundis-visual-card strong,
+.fundis-visual-card small {
+    display: block;
     margin: 0;
+}
 
-    color: #172121;
+.fundis-visual-card strong {
+    color: #234743;
+    font-size: 12px;
+    font-weight: 800;
+}
 
+.fundis-visual-card small {
+    margin-top: 5px;
+    color: #81938e;
+    font-size: 11px;
+}
+
+/* =========================================
+   SEARCH BAR
+========================================= */
+
+.fundis-search-section {
+    position: relative;
+    z-index: 3;
+    width: 100%;
+    max-width: 1260px;
+    margin: -28px auto 0;
+    padding: 0 32px;
+}
+
+.fundis-search {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.9fr) auto;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    padding: 15px;
+    border: 1px solid #e1ece7;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 15px 42px rgba(25, 73, 59, 0.09);
+}
+
+.fundis-search-field {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    min-height: 60px;
+    padding: 9px 15px;
+    border: 1px solid #edf2ef;
+    border-radius: 12px;
+    background: #fbfdfc;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.fundis-search-field:focus-within {
+    border-color: #76c8b5;
+    box-shadow: 0 0 0 3px rgba(0, 143, 131, 0.08);
+}
+
+.fundis-field-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    margin: 0 !important;
+    border-radius: 10px;
+    background: #e8f6ef;
+    color: #008f83;
+    font-size: 23px;
+    line-height: 1;
+}
+
+.fundis-field-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    min-width: 0;
+    width: 100%;
+}
+
+.fundis-field-label {
+    display: block;
+    margin: 0 !important;
+    color: #46625d;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+}
+
+.fundis-search .fundis-field-content input,
+.fundis-search .fundis-field-content select {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    min-height: 22px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    outline: none;
+    background: transparent;
+    box-shadow: none;
+    color: #234743;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.fundis-search .fundis-field-content input::placeholder {
+    color: #97a7a2;
+    opacity: 1;
+}
+
+.fundis-search .fundis-field-content select {
+    cursor: pointer;
+}
+
+.fundis-search-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    min-height: 60px;
+    padding: 0 24px;
+    border: 1px solid #008f83;
+    border-radius: 12px;
+    background: #008f83;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 800;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.fundis-search-button span {
+    margin: 0;
+    color: inherit;
     font-size: 18px;
+    letter-spacing: 0;
+}
+
+.fundis-search-button:hover {
+    transform: translateY(-1px);
+    background: #087568;
+    box-shadow: 0 7px 18px rgba(0, 143, 131, 0.2);
+}
+
+.fundis-search-button:active {
+    transform: translateY(0);
+}
+
+/* =========================================
+   RESULTS SECTION
+========================================= */
+
+.fundis-results {
+    width: 100%;
+    max-width: 1260px;
+    margin: 0 auto;
+    padding: 67px 32px 86px;
+}
+
+.fundis-results-top {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 28px;
+}
+
+.fundis-section-kicker {
+    display: block;
+    margin-bottom: 10px;
+    color: #078778;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.6px;
+}
+
+.fundis-results-top h2 {
+    margin: 0;
+    color: #173b3b;
+    font-size: 31px;
+    font-weight: 800;
+    letter-spacing: -0.8px;
+}
+
+.fundis-results-description {
+    margin: 9px 0 0;
+    color: #748780;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.fundis-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+    padding: 10px 15px;
+    border: 1px solid #dcefe7;
+    border-radius: 30px;
+    background: #edf8f2;
+    color: #42675c;
+    font-size: 12px;
+}
+
+.fundis-count strong {
+    color: #087d70;
+    font-size: 15px;
+    font-weight: 800;
+}
+
+/* =========================================
+   PROFESSIONAL GRID
+========================================= */
+
+.fundis-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 22px;
+}
+
+.fundi-card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 23px;
+    overflow: hidden;
+    border: 1px solid #e5ede8;
+    border-radius: 17px;
+    background: #ffffff;
+    box-shadow: 0 5px 20px rgba(27, 66, 54, 0.035);
+    transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+.fundi-card:hover {
+    transform: translateY(-5px);
+    border-color: #c5e5d8;
+    box-shadow: 0 15px 34px rgba(27, 66, 54, 0.09);
+}
+
+.fundi-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 21px;
+}
+
+.fundi-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 67px;
+    height: 67px;
+    flex-shrink: 0;
+    border: 1px solid #cfece0;
+    border-radius: 18px;
+    background: linear-gradient(145deg, #e5f6ee, #d3eee2);
+    color: #087d70;
+    font-size: 21px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
 }
 
 .verified {
-    padding: 4px 7px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+    padding: 7px 10px;
+    border: 1px solid #d4f0df;
+    border-radius: 30px;
+    background: #effaf3;
+    color: #24824d;
+    font-size: 10px;
+    font-weight: 800;
+}
 
-    border-radius: 20px;
+.verified span {
+    margin: 0;
+    font-size: 12px;
+}
 
-    background: #e6f7ed;
+.fundi-info {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+}
 
-    color: #22844b;
+.fundi-card-kicker {
+    margin: 0 0 7px;
+    color: #078b7b;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.1px;
+    text-transform: uppercase;
+}
 
-    font-size: 11px;
-
-    font-weight: 600;
+.fundi-card-name {
+    margin: 0;
+    overflow-wrap: anywhere;
+    color: #1b3e3a;
+    font-size: 19px;
+    font-weight: 800;
+    line-height: 1.35;
+    letter-spacing: -0.3px;
 }
 
 .fundi-trade {
-    margin-top: 5px;
-
-    color: #008c8c;
-
-    font-weight: 600;
-
-    font-size: 14px;
+    margin: 5px 0 0;
+    color: #788a84;
+    font-size: 12px;
+    line-height: 1.6;
 }
 
 .fundi-location {
-    margin-top: 7px;
-
-    color: #687575;
-
-    font-size: 13px;
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+    margin-top: 17px;
+    color: #788a84;
+    font-size: 12px;
+    line-height: 1.6;
 }
 
-.fundi-stats {
+.fundi-location > span:first-child {
+    flex-shrink: 0;
+    color: #0a9985;
+    font-size: 16px;
+    line-height: 1.2;
+}
+
+.fundi-card-divider {
+    height: 1px;
+    margin: 20px 0 16px;
+    background: #edf2ef;
+}
+
+.fundi-pricing {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.fundi-price-item {
     display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+}
 
-    flex-wrap: wrap;
+.fundi-price-item > span {
+    color: #899991;
+    font-size: 10px;
+    font-weight: 600;
+}
 
-    gap: 20px;
-
-    margin-top: 15px;
-
-    color: #596565;
-
+.fundi-price-item > strong {
+    overflow-wrap: anywhere;
+    color: #234c43;
     font-size: 13px;
+    font-weight: 800;
+    line-height: 1.5;
 }
 
 .view-button {
-    display: inline-block;
-
-    text-align: center;
-
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    min-height: 45px;
+    margin-top: auto;
+    padding: 0 16px;
+    border: 1px solid #d1e9df;
+    border-radius: 11px;
+    background: #f0f9f4;
+    color: #087d70;
+    font-size: 12px;
+    font-weight: 800;
     text-decoration: none;
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
 
-    margin-top: 18px;
-
-    padding: 9px 16px;
-
-    border: 1px solid #008c8c;
-
-    border-radius: 6px;
-
-    background: white;
-
-    color: #008c8c;
-
-    font-weight: 600;
-
-    cursor: pointer;
-
-    transition:
-            background 0.2s ease,
-            color 0.2s ease;
+.view-button span {
+    color: inherit;
+    font-size: 18px;
+    transition: transform 0.2s ease;
 }
 
 .view-button:hover {
-    background: #008c8c;
-
-    color: white;
+    border-color: #008f83;
+    background: #008f83;
+    color: #ffffff;
 }
 
-/* Loading / Error / Empty State */
+.view-button:hover span {
+    transform: translateX(3px);
+}
+
+.fundis-results-note {
+    margin: 25px 0 0;
+    color: #87978f;
+    font-size: 11px;
+    line-height: 1.7;
+    text-align: center;
+}
+
+/* =========================================
+   LOADING, EMPTY AND ERROR STATES
+========================================= */
 
 .fundis-message {
-    max-width: 600px;
-
-    margin: 50px auto;
-
-    padding: 40px;
-
+    max-width: 590px;
+    margin: 42px auto 15px;
+    padding: 48px 30px;
+    border: 1px solid #e3eee8;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 8px 25px rgba(27, 66, 54, 0.04);
     text-align: center;
+}
 
-    background: white;
-
-    border: 1px solid #e1eaea;
-
-    border-radius: 12px;
-
-    box-shadow:
-            0 5px 20px rgba(0, 0, 0, 0.04);
+.fundis-message-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 54px;
+    height: 54px;
+    margin: 0 auto 18px;
+    border-radius: 17px;
+    background: #eaf7f0;
+    color: #078778;
+    font-size: 27px;
+    font-weight: 700;
 }
 
 .fundis-message h2 {
-    margin-bottom: 12px;
-
-    color: #172121;
-
-    font-size: 22px;
+    margin: 0 0 10px;
+    color: #1b403b;
+    font-size: 21px;
+    font-weight: 800;
+    line-height: 1.4;
 }
 
 .fundis-message p {
-    margin-bottom: 20px;
+    margin: 0 auto 22px;
+    color: #788a84;
+    font-size: 13px;
+    line-height: 1.8;
+}
 
-    color: #687575;
-
-    line-height: 1.6;
-
-    font-size: 14px;
+.fundis-error-message .fundis-message-icon {
+    background: #fff0ed;
+    color: #c65b48;
 }
 
 .retry-button {
-    padding: 11px 20px;
-
-    border: none;
-
-    border-radius: 6px;
-
-    background: #008c8c;
-
-    color: white;
-
-    font-weight: 600;
-
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 43px;
+    padding: 0 20px;
+    border: 1px solid #008f83;
+    border-radius: 10px;
+    background: #008f83;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 800;
     cursor: pointer;
-
-    transition: background 0.2s ease;
+    transition: background 0.2s ease, transform 0.2s ease;
 }
 
 .retry-button:hover {
-    background: #006f6f;
+    transform: translateY(-1px);
+    background: #087568;
 }
-
-/* Loading Spinner */
 
 .loading-spinner {
-    width: 38px;
-
-    height: 38px;
-
-    margin: 0 auto 20px;
-
-    border: 4px solid #e5f6f6;
-
-    border-top: 4px solid #008c8c;
-
+    width: 42px;
+    height: 42px;
+    margin: 0 auto 22px;
+    border: 4px solid #e2f2e9;
+    border-top-color: #008f83;
     border-radius: 50%;
-
-    animation: spin 0.8s linear infinite;
+    animation: fundis-spin 0.8s linear infinite;
 }
 
-@keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
-
+@keyframes fundis-spin {
     to {
         transform: rotate(360deg);
     }
 }
 
-/* Responsive */
+/* =========================================
+   TABLETS
+========================================= */
 
-@media (max-width: 900px) {
-
-    .fundis-search {
-        margin: 25px 20px;
-
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .fundis-search button {
-        padding: 13px;
-    }
-
-    .fundis-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 600px) {
-
-    .fundis-header > div {
-        padding: 40px 20px;
+@media (max-width: 1050px) {
+    .fundis-header-inner {
+        gap: 25px;
+        padding-right: 25px;
+        padding-left: 25px;
     }
 
     .fundis-header h1 {
-        font-size: 34px;
+        font-size: 47px;
+    }
+
+    .fundis-header-visual {
+        transform: scale(0.9);
+    }
+
+    .fundis-search-section {
+        padding-right: 25px;
+        padding-left: 25px;
     }
 
     .fundis-search {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr);
+    }
+
+    .fundis-search-button {
+        grid-column: 1 / -1;
+        min-height: 49px;
     }
 
     .fundis-results {
-        padding-left: 20px;
-
-        padding-right: 20px;
+        padding-right: 25px;
+        padding-left: 25px;
     }
 
-    .fundi-card {
-        flex-direction: column;
-    }
-
-    .fundi-avatar {
-        width: 70px;
-    }
-
-    .results-heading {
-        align-items: flex-start;
-
-        gap: 10px;
-
-        flex-direction: column;
+    .fundis-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
     }
 }
 
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 650px) {
+    .fundis-header-inner {
+        grid-template-columns: 1fr;
+        gap: 25px;
+        min-height: auto;
+        padding: 44px 21px 65px;
+    }
+
+    .fundis-header h1 {
+        font-size: clamp(37px, 9vw, 48px);
+        letter-spacing: -1.8px;
+    }
+
+    .fundis-header-copy > p {
+        margin-top: 17px;
+        font-size: 14px;
+    }
+
+    .fundis-header-points {
+        gap: 11px 15px;
+        margin-top: 22px;
+    }
+
+    .fundis-header-points > span {
+        font-size: 11px;
+    }
+
+    .fundis-header-visual {
+        min-height: 205px;
+        margin: 0 auto;
+        width: 100%;
+        max-width: 360px;
+        transform: none;
+    }
+
+    .fundis-visual-circle {
+        width: 175px;
+        height: 175px;
+        box-shadow:
+                0 0 0 14px rgba(0, 143, 131, 0.035),
+                0 0 0 28px rgba(0, 143, 131, 0.025);
+    }
+
+    .fundis-tool-icon {
+        width: 100px;
+        height: 100px;
+        border-radius: 28px;
+        font-size: 49px;
+    }
+
+    .fundis-visual-card {
+        min-width: 178px;
+        gap: 9px;
+        padding: 11px;
+        border-radius: 12px;
+    }
+
+    .fundis-visual-card-top {
+        top: 0;
+        right: -3px;
+    }
+
+    .fundis-visual-card-bottom {
+        bottom: 0;
+        left: -3px;
+    }
+
+    .fundis-visual-card-icon,
+    .fundis-visual-star {
+        width: 31px;
+        height: 31px;
+        font-size: 16px;
+    }
+
+    .fundis-visual-card strong {
+        font-size: 10px;
+    }
+
+    .fundis-visual-card small {
+        font-size: 10px;
+    }
+
+    .fundis-search-section {
+        margin-top: -27px;
+        padding-right: 16px;
+        padding-left: 16px;
+    }
+
+    .fundis-search {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
+        padding: 12px;
+        border-radius: 15px;
+    }
+
+    .fundis-search-field {
+        min-height: 58px;
+    }
+
+    .fundis-search-button {
+        grid-column: auto;
+        width: 100%;
+        min-height: 49px;
+    }
+
+    .fundis-results {
+        padding: 46px 16px 60px;
+    }
+
+    .fundis-results-top {
+        align-items: flex-start;
+        gap: 14px;
+        margin-bottom: 22px;
+    }
+
+    .fundis-results-top h2 {
+        font-size: 27px;
+    }
+
+    .fundis-results-description {
+        font-size: 12px;
+    }
+
+    .fundis-count {
+        padding: 8px 10px;
+        font-size: 10px;
+    }
+
+    .fundis-count strong {
+        font-size: 13px;
+    }
+
+    .fundis-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 15px;
+    }
+
+    .fundi-card {
+        padding: 21px;
+        border-radius: 15px;
+    }
+
+    .fundi-card-top {
+        margin-bottom: 17px;
+    }
+
+    .fundi-card-name {
+        font-size: 18px;
+    }
+
+    .fundis-message {
+        margin-top: 28px;
+        padding: 35px 21px;
+    }
+}
+
+/* =========================================
+   SMALL PHONES
+========================================= */
+
+@media (max-width: 380px) {
+    .fundis-header-inner {
+        padding-right: 17px;
+        padding-left: 17px;
+    }
+
+    .fundis-header h1 {
+        font-size: 35px;
+    }
+
+    .fundis-header-points {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .fundis-visual-card {
+        min-width: 160px;
+    }
+
+    .fundis-results-top {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .fundi-pricing {
+        gap: 8px;
+    }
+
+    .fundi-price-item > strong {
+        font-size: 12px;
+    }
+}
+
+/* =========================================
+   ACCESSIBILITY
+========================================= */
+
+.fundis-page a:focus-visible,
+.fundis-page button:focus-visible,
+.fundis-page input:focus-visible,
+.fundis-page select:focus-visible {
+    outline: 3px solid rgba(0, 143, 131, 0.35);
+    outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fundis-page *,
+    .fundis-page *::before,
+    .fundis-page *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

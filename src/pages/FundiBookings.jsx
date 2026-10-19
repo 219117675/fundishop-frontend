@@ -1,147 +1,344 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { API_URL } from "../api";
 import "./FundiBookings.css";
+
+function getStoredUser() {
+    const storedUser = localStorage.getItem("fundiShopUser");
+
+    if (!storedUser) {
+        return null;
+    }
+
+    try {
+        return JSON.parse(storedUser);
+    } catch (error) {
+        console.error("Invalid stored user:", error);
+        localStorage.removeItem("fundiShopUser");
+        return null;
+    }
+}
+
+function getToken() {
+    return (
+        localStorage.getItem("fundiShopToken") ||
+        localStorage.getItem("token") ||
+        localStorage.getItem("jwtToken") ||
+        ""
+    );
+}
 
 function FundiBookings() {
     const navigate = useNavigate();
 
-    const [user, setUser] = useState(null);
+    const [user] = useState(() => getStoredUser());
     const [profile, setProfile] = useState(null);
     const [bookings, setBookings] = useState([]);
-
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [updatingBookingId, setUpdatingBookingId] = useState(null);
+    const [activeFilter, setActiveFilter] = useState("ALL");
 
     useEffect(() => {
-        loadBookings();
-    }, []);
+        let cancelled = false;
 
-    const loadBookings = async () => {
-        try {
-            setLoading(true);
-            setError("");
+        const loadBookings = async () => {
+            const storedUser = getStoredUser();
+            const token = getToken();
 
-            const storedUser =
-                localStorage.getItem("fundiShopUser");
-
-            if (!storedUser) {
-                navigate("/login");
+            if (
+                !storedUser ||
+                !storedUser.id ||
+                storedUser.role !== "FUNDI"
+            ) {
+                navigate("/login", { replace: true });
                 return;
             }
 
-            const parsedUser = JSON.parse(storedUser);
+            try {
+                setLoading(true);
+                setError("");
 
-            if (parsedUser.role !== "FUNDI") {
-                navigate("/");
-                return;
-            }
+                const headers = {
+                    Accept: "application/json",
+                };
 
-            setUser(parsedUser);
+                if (token) {
+                    headers.Authorization = `Bearer ${token}`;
+                }
 
-            /*
-             * Find the Fundi profile belonging
-             * to the logged-in Fundi.
-             */
-            const profileResponse = await fetch(
-                "http://localhost:8080/api/fundiprofiles"
-            );
+                const profileUrl =
+                    `${API_URL}/api/fundiprofiles/user/${storedUser.id}`;
 
-            if (!profileResponse.ok) {
-                throw new Error(
-                    "Unable to load Fundi profile."
+                const profileResponse = await fetch(
+                    profileUrl,
+                    {
+                        method: "GET",
+                        headers,
+                    }
                 );
-            }
 
-            const profiles = await profileResponse.json();
+                if (cancelled) {
+                    return;
+                }
 
-            const myProfile = profiles.find(
-                (item) =>
-                    item.user &&
-                    item.user.id === parsedUser.id
-            );
+                if (profileResponse.status === 401) {
+                    localStorage.removeItem("fundiShopToken");
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("jwtToken");
 
-            if (!myProfile) {
-                setProfile(null);
-                setBookings([]);
-                return;
-            }
+                    setError(
+                        "Your login session has expired. Please log in again."
+                    );
 
-            setProfile(myProfile);
+                    setTimeout(() => {
+                        navigate("/login", { replace: true });
+                    }, 1200);
 
-            /*
-             * Get bookings belonging to this Fundi.
-             */
-            const bookingsResponse = await fetch(
-                `http://localhost:8080/api/bookings/fundi/${myProfile.id}`
-            );
+                    return;
+                }
 
-            if (!bookingsResponse.ok) {
-                throw new Error(
+                if (profileResponse.status === 403) {
+                    throw new Error(
+                        "You do not have permission to access your Fundi profile."
+                    );
+                }
+
+                if (profileResponse.status === 404) {
+                    setProfile(null);
+                    setBookings([]);
+                    return;
+                }
+
+                if (!profileResponse.ok) {
+                    throw new Error(
+                        `Unable to load your Fundi profile. Server returned ${profileResponse.status}.`
+                    );
+                }
+
+                const myProfile = await profileResponse.json();
+
+                if (cancelled) {
+                    return;
+                }
+
+                if (!myProfile || !myProfile.id) {
+                    setProfile(null);
+                    setBookings([]);
+                    return;
+                }
+
+                setProfile(myProfile);
+
+                const bookingsUrl =
+                    `${API_URL}/api/bookings/fundi/${myProfile.id}`;
+
+                const bookingsResponse = await fetch(
+                    bookingsUrl,
+                    {
+                        method: "GET",
+                        headers,
+                    }
+                );
+
+                if (cancelled) {
+                    return;
+                }
+
+                if (bookingsResponse.status === 401) {
+                    throw new Error(
+                        "Your login session has expired. Please log in again."
+                    );
+                }
+
+                if (bookingsResponse.status === 403) {
+                    throw new Error(
+                        "You do not have permission to view these bookings."
+                    );
+                }
+
+                if (bookingsResponse.status === 404) {
+                    setBookings([]);
+                    return;
+                }
+
+                if (!bookingsResponse.ok) {
+                    throw new Error(
+                        `Unable to load bookings. Server returned ${bookingsResponse.status}.`
+                    );
+                }
+
+                const bookingsData =
+                    await bookingsResponse.json();
+
+                if (cancelled) {
+                    return;
+                }
+
+                setBookings(
+                    Array.isArray(bookingsData)
+                        ? bookingsData
+                        : []
+                );
+            } catch (err) {
+                if (cancelled) {
+                    return;
+                }
+
+                console.error(
+                    "Error loading Fundi bookings:",
+                    err
+                );
+
+                setError(
+                    err.message ||
                     "Unable to load bookings."
                 );
+            } finally {
+                if (!cancelled) {
+                    setLoading(false);
+                }
             }
+        };
 
-            const bookingsData =
-                await bookingsResponse.json();
+        loadBookings();
 
-            setBookings(bookingsData);
+        return () => {
+            cancelled = true;
+        };
+    }, [navigate]);
 
-        } catch (err) {
-            console.error(
-                "Error loading bookings:",
-                err
-            );
-
-            setError(
-                err.message ||
-                "Unable to load bookings."
-            );
-
-        } finally {
-            setLoading(false);
+    const getHomeownerName = (homeowner) => {
+        if (!homeowner) {
+            return "Homeowner";
         }
+
+        if (homeowner.fullName) {
+            return homeowner.fullName;
+        }
+
+        const firstName = homeowner.firstName || "";
+        const lastName = homeowner.lastName || "";
+
+        const combinedName =
+            `${firstName} ${lastName}`.trim();
+
+        if (combinedName) {
+            return combinedName;
+        }
+
+        if (homeowner.name) {
+            return homeowner.name;
+        }
+
+        return "Homeowner";
     };
 
     /*
-     * Accept or decline a booking
+     * REQUESTED and RESCHEDULED bookings both require
+     * action from the Fundi.
      */
+    const isPendingFundiDecision = (status) => {
+        return (
+            status === "REQUESTED" ||
+            status === "RESCHEDULED"
+        );
+    };
+
     const updateBookingStatus = async (
         bookingId,
         status
     ) => {
+        if (!bookingId || !status) {
+            return;
+        }
+
+        const booking = bookings.find(
+            (currentBooking) =>
+                currentBooking.id === bookingId
+        );
+
+        if (!booking) {
+            return;
+        }
+
+        /*
+         * A Fundi can respond to:
+         *
+         * REQUESTED   -> ACCEPTED / DECLINED
+         * RESCHEDULED -> ACCEPTED / DECLINED
+         */
+        if (!isPendingFundiDecision(booking.status)) {
+            setError(
+                "This booking is no longer waiting for a Fundi response."
+            );
+            return;
+        }
+
+        if (
+            status !== "ACCEPTED" &&
+            status !== "DECLINED"
+        ) {
+            setError(
+                "Invalid booking status update."
+            );
+            return;
+        }
+
         try {
             setUpdatingBookingId(bookingId);
             setError("");
 
+            const token = getToken();
+
+            const headers = {
+                Accept: "application/json",
+            };
+
+            if (token) {
+                headers.Authorization =
+                    `Bearer ${token}`;
+            }
+
             const response = await fetch(
-                `http://localhost:8080/api/bookings/${bookingId}/status?status=${status}`,
+                `${API_URL}/api/bookings/${bookingId}/status?status=${status}`,
                 {
                     method: "PUT",
+                    headers,
                 }
             );
 
+            let data = null;
+
+            try {
+                data = await response.json();
+            } catch {
+                data = null;
+            }
+
             if (!response.ok) {
                 throw new Error(
-                    "Unable to update booking status."
+                    data?.message ||
+                    data?.error ||
+                    `Unable to update booking. Server returned ${response.status}.`
                 );
             }
 
-            const updatedBooking =
-                await response.json();
+            if (!data) {
+                throw new Error(
+                    "The server did not return the updated booking."
+                );
+            }
 
-            /*
-             * Update the booking immediately
-             * without refreshing the page.
-             */
-            setBookings((currentBookings) =>
-                currentBookings.map((booking) =>
-                    booking.id === updatedBooking.id
-                        ? updatedBooking
-                        : booking
-                )
+            setBookings(
+                (currentBookings) =>
+                    currentBookings.map(
+                        (currentBooking) =>
+                            currentBooking.id === data.id
+                                ? data
+                                : currentBooking
+                    )
             );
-
         } catch (err) {
             console.error(
                 "Error updating booking:",
@@ -152,15 +349,11 @@ function FundiBookings() {
                 err.message ||
                 "Unable to update the booking. Please try again."
             );
-
         } finally {
             setUpdatingBookingId(null);
         }
     };
 
-    /*
-     * Convert status into a CSS class
-     */
     const getStatusClass = (status) => {
         switch (status) {
             case "REQUESTED":
@@ -182,13 +375,10 @@ function FundiBookings() {
                 return "status-cancelled";
 
             default:
-                return "";
+                return "status-default";
         }
     };
 
-    /*
-     * Make status easier to read
-     */
     const formatStatus = (status) => {
         if (!status) {
             return "Unknown";
@@ -197,22 +387,29 @@ function FundiBookings() {
         return status
             .replaceAll("_", " ")
             .toLowerCase()
-            .replace(/\b\w/g, (letter) =>
-                letter.toUpperCase()
+            .replace(
+                /\b\w/g,
+                (letter) => letter.toUpperCase()
             );
     };
 
-    /*
-     * Format booking date
-     */
     const formatDate = (date) => {
         if (!date) {
             return "Not specified";
         }
 
-        return new Date(
-            `${date}T00:00:00`
-        ).toLocaleDateString(
+        const parsedDate =
+            new Date(`${date}T00:00:00`);
+
+        if (
+            Number.isNaN(
+                parsedDate.getTime()
+            )
+        ) {
+            return "Not specified";
+        }
+
+        return parsedDate.toLocaleDateString(
             "en-ZA",
             {
                 day: "numeric",
@@ -222,39 +419,102 @@ function FundiBookings() {
         );
     };
 
-    /*
-     * Format booking time
-     */
     const formatTime = (time) => {
         if (!time) {
             return "Not specified";
         }
 
-        return time.substring(0, 5);
+        return String(time).substring(0, 5);
     };
 
-    /*
-     * Loading screen
-     */
+    const formatCurrency = (amount) => {
+        if (
+            amount === null ||
+            amount === undefined ||
+            amount === ""
+        ) {
+            return "Not specified";
+        }
+
+        const numericAmount = Number(amount);
+
+        if (Number.isNaN(numericAmount)) {
+            return "Not specified";
+        }
+
+        return numericAmount.toLocaleString(
+            "en-ZA",
+            {
+                style: "currency",
+                currency: "ZAR",
+                minimumFractionDigits: 2,
+            }
+        );
+    };
+
+    const bookingCounts = useMemo(() => {
+        return {
+            total: bookings.length,
+
+            requested: bookings.filter(
+                (booking) =>
+                    booking.status === "REQUESTED"
+            ).length,
+
+            rescheduled: bookings.filter(
+                (booking) =>
+                    booking.status === "RESCHEDULED"
+            ).length,
+
+            accepted: bookings.filter(
+                (booking) =>
+                    booking.status === "ACCEPTED"
+            ).length,
+
+            completed: bookings.filter(
+                (booking) =>
+                    booking.status === "COMPLETED"
+            ).length,
+        };
+    }, [bookings]);
+
+    const filteredBookings = useMemo(() => {
+        if (activeFilter === "ALL") {
+            return bookings;
+        }
+
+        /*
+         * REQUESTS filter shows both brand-new requests
+         * and homeowner reschedule requests.
+         */
+        if (activeFilter === "REQUESTS") {
+            return bookings.filter(
+                (booking) =>
+                    booking.status === "REQUESTED" ||
+                    booking.status === "RESCHEDULED"
+            );
+        }
+
+        return bookings.filter(
+            (booking) =>
+                booking.status === activeFilter
+        );
+    }, [bookings, activeFilter]);
+
     if (loading) {
         return (
             <main className="fundi-bookings-page">
-
                 <div className="bookings-loading">
-
                     <div className="bookings-spinner"></div>
 
                     <h1>
-                        Loading Bookings...
+                        Loading Bookings
                     </h1>
 
                     <p>
-                        Please wait while we load
-                        your booking requests.
+                        Please wait while we load your booking requests.
                     </p>
-
                 </div>
-
             </main>
         );
     }
@@ -265,54 +525,92 @@ function FundiBookings() {
 
     return (
         <main className="fundi-bookings-page">
-
             <div className="fundi-bookings-container">
 
-                {/* Back to Dashboard */}
+                {/* BACK LINK */}
 
                 <Link
                     to="/fundi-dashboard"
                     className="bookings-back-link"
                 >
-                    ← Back to Dashboard
+                    <span className="back-arrow">
+                        ←
+                    </span>
+
+                    Back to Dashboard
                 </Link>
 
-
-                {/* Page Header */}
+                {/* PAGE HEADER */}
 
                 <header className="bookings-header">
 
-                    <span className="bookings-label">
-                        FUNDISHOP FUNDI PORTAL
-                    </span>
+                    <div className="bookings-heading-content">
+                        <span className="bookings-label">
+                            FUNDISHOP FUNDI PORTAL
+                        </span>
 
-                    <h1>
-                        My Bookings
-                    </h1>
+                        <h1>
+                            My Bookings
+                        </h1>
 
-                    <p>
-                        View and manage booking requests
-                        from homeowners.
-                    </p>
+                        <p>
+                            Manage homeowner requests,
+                            upcoming work and your booking history.
+                        </p>
+                    </div>
+
+                    {profile && (
+                        <div className="fundi-profile-mini">
+                            <div className="profile-mini-avatar">
+                                {getHomeownerName({
+                                    firstName: profile.firstName,
+                                    lastName: profile.lastName,
+                                    fullName: profile.name
+                                })
+                                    .charAt(0)
+                                    .toUpperCase()}
+                            </div>
+
+                            <div>
+                                <span>
+                                    FUNDI
+                                </span>
+
+                                <strong>
+                                    {profile.name ||
+                                        profile.businessName ||
+                                        "My Profile"}
+                                </strong>
+                            </div>
+                        </div>
+                    )}
 
                 </header>
 
-
-                {/* Error Message */}
+                {/* ERROR */}
 
                 {error && (
                     <div className="bookings-error">
-                        {error}
+                        <span className="error-icon">
+                            !
+                        </span>
+
+                        <div>
+                            <strong>
+                                Something went wrong
+                            </strong>
+
+                            <p>
+                                {error}
+                            </p>
+                        </div>
                     </div>
                 )}
 
-
-                {/* No Fundi Profile */}
+                {/* PROFILE NOT FOUND */}
 
                 {!profile && !error && (
-
                     <div className="no-bookings">
-
                         <div className="no-bookings-icon">
                             🔧
                         </div>
@@ -323,21 +621,188 @@ function FundiBookings() {
 
                         <p>
                             Your Fundi profile could not
-                            be found. Please complete
-                            your Fundi profile first.
+                            be found. Please complete your
+                            Fundi profile first.
                         </p>
 
+                        <Link
+                            to="/fundi-profile"
+                            className="profile-button"
+                        >
+                            Go to My Profile
+                        </Link>
                     </div>
-
                 )}
 
+                {/* SUMMARY */}
 
-                {/* No Bookings */}
+                {profile && bookings.length > 0 && (
+                    <>
+                        <section className="bookings-summary">
+
+                            <div className="summary-item summary-total">
+                                <div className="summary-icon">
+                                    📋
+                                </div>
+
+                                <div>
+                                    <span>
+                                        TOTAL BOOKINGS
+                                    </span>
+
+                                    <strong>
+                                        {bookingCounts.total}
+                                    </strong>
+                                </div>
+                            </div>
+
+                            <div className="summary-item summary-requested">
+                                <div className="summary-icon">
+                                    ⏳
+                                </div>
+
+                                <div>
+                                    <span>
+                                        REQUESTS
+                                    </span>
+
+                                    <strong>
+                                        {bookingCounts.requested +
+                                            bookingCounts.rescheduled}
+                                    </strong>
+                                </div>
+                            </div>
+
+                            <div className="summary-item summary-accepted">
+                                <div className="summary-icon">
+                                    ✓
+                                </div>
+
+                                <div>
+                                    <span>
+                                        ACCEPTED
+                                    </span>
+
+                                    <strong>
+                                        {bookingCounts.accepted}
+                                    </strong>
+                                </div>
+                            </div>
+
+                            <div className="summary-item summary-completed">
+                                <div className="summary-icon">
+                                    ★
+                                </div>
+
+                                <div>
+                                    <span>
+                                        COMPLETED
+                                    </span>
+
+                                    <strong>
+                                        {bookingCounts.completed}
+                                    </strong>
+                                </div>
+                            </div>
+
+                        </section>
+
+                        {/* FILTERS */}
+
+                        <section className="booking-filters">
+
+                            <div>
+                                <span className="filters-label">
+                                    VIEW BOOKINGS
+                                </span>
+
+                                <h2>
+                                    Booking requests
+                                </h2>
+                            </div>
+
+                            <div className="filter-buttons">
+
+                                <button
+                                    type="button"
+                                    className={
+                                        activeFilter === "ALL"
+                                            ? "filter-button active"
+                                            : "filter-button"
+                                    }
+                                    onClick={() =>
+                                        setActiveFilter("ALL")
+                                    }
+                                >
+                                    All
+                                    <span>
+                                        {bookingCounts.total}
+                                    </span>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className={
+                                        activeFilter === "REQUESTS"
+                                            ? "filter-button active"
+                                            : "filter-button"
+                                    }
+                                    onClick={() =>
+                                        setActiveFilter("REQUESTS")
+                                    }
+                                >
+                                    Requests
+                                    <span>
+                                        {bookingCounts.requested +
+                                            bookingCounts.rescheduled}
+                                    </span>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className={
+                                        activeFilter === "ACCEPTED"
+                                            ? "filter-button active"
+                                            : "filter-button"
+                                    }
+                                    onClick={() =>
+                                        setActiveFilter("ACCEPTED")
+                                    }
+                                >
+                                    Accepted
+                                    <span>
+                                        {bookingCounts.accepted}
+                                    </span>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className={
+                                        activeFilter === "COMPLETED"
+                                            ? "filter-button active"
+                                            : "filter-button"
+                                    }
+                                    onClick={() =>
+                                        setActiveFilter("COMPLETED")
+                                    }
+                                >
+                                    Completed
+                                    <span>
+                                        {bookingCounts.completed}
+                                    </span>
+                                </button>
+
+                            </div>
+
+                        </section>
+                    </>
+                )}
+
+                {/* NO BOOKINGS */}
 
                 {profile &&
                     bookings.length === 0 &&
                     !error && (
-
                         <div className="no-bookings">
 
                             <div className="no-bookings-icon">
@@ -357,256 +822,274 @@ function FundiBookings() {
                         </div>
                     )}
 
+                {/* FILTER HAS NO RESULTS */}
 
-                {/* Bookings */}
+                {profile &&
+                    bookings.length > 0 &&
+                    filteredBookings.length === 0 && (
+                        <div className="no-bookings filter-empty">
 
-                {bookings.length > 0 && (
-
-                    <section className="bookings-list">
-
-                        {/* Booking Summary */}
-
-                        <div className="bookings-summary">
-
-                            <div>
-
-                                <span>
-                                    TOTAL BOOKINGS
-                                </span>
-
-                                <strong>
-                                    {bookings.length}
-                                </strong>
-
+                            <div className="no-bookings-icon">
+                                🔎
                             </div>
 
+                            <h2>
+                                No {formatStatus(activeFilter).toLowerCase()} bookings
+                            </h2>
+
+                            <p>
+                                There are currently no bookings
+                                with this status.
+                            </p>
+
+                            <button
+                                type="button"
+                                className="profile-button"
+                                onClick={() =>
+                                    setActiveFilter("ALL")
+                                }
+                            >
+                                View All Bookings
+                            </button>
+
                         </div>
+                    )}
 
+                {/* BOOKINGS */}
 
-                        {/* Booking Cards */}
+                {filteredBookings.length > 0 && (
+                    <section className="bookings-list">
 
-                        {bookings.map((booking) => {
+                        {filteredBookings.map(
+                            (booking) => {
+                                const homeowner =
+                                    booking.customer;
 
-                            const homeowner =
-                                booking.customer;
+                                const isUpdating =
+                                    updatingBookingId ===
+                                    booking.id;
 
-                            const isUpdating =
-                                updatingBookingId ===
-                                booking.id;
+                                const isRescheduleRequest =
+                                    booking.status ===
+                                    "RESCHEDULED";
 
-                            return (
-                                <article
-                                    className="booking-card"
-                                    key={booking.id}
-                                >
+                                return (
+                                    <article
+                                        className="booking-card"
+                                        key={booking.id}
+                                    >
 
-                                    {/* =========================
-                                        BOOKING HEADER
-                                    ========================== */}
+                                        {/* CARD HEADER */}
 
-                                    <div className="booking-card-header">
+                                        <div className="booking-card-header">
 
-                                        <div>
+                                            <div className="booking-title-area">
 
-                                            <span className="booking-card-label">
-                                                BOOKING REQUEST
-                                            </span>
+                                                <span className="booking-card-label">
+                                                    {isRescheduleRequest
+                                                        ? "RESCHEDULE REQUEST"
+                                                        : "BOOKING REQUEST"}
+                                                </span>
 
-                                            <h2>
-                                                {booking.serviceRequired ||
-                                                    "Service Request"}
-                                            </h2>
+                                                <h2>
+                                                    {
+                                                        booking.serviceRequired ||
+                                                        "Service Request"
+                                                    }
+                                                </h2>
 
-                                        </div>
+                                                <span className="booking-reference">
+                                                    Booking #
+                                                    {booking.id}
+                                                </span>
 
+                                            </div>
 
-                                        {/* Status */}
+                                            <span
+                                                className={`booking-status ${getStatusClass(
+                                                    booking.status
+                                                )}`}
+                                            >
+                                                <span className="status-dot"></span>
 
-                                        <span
-                                            className={`booking-status ${getStatusClass(
-                                                booking.status
-                                            )}`}
-                                        >
-                                            {formatStatus(
-                                                booking.status
-                                            )}
-                                        </span>
-
-                                    </div>
-
-
-                                    {/* =========================
-                                        BOOKING DETAILS
-                                    ========================== */}
-
-                                    <div className="booking-card-content">
-
-
-                                        {/* Homeowner */}
-
-                                        <div className="booking-detail">
-
-                                            <span>
-                                                👤 Homeowner
-                                            </span>
-
-                                            <strong>
-                                                {homeowner?.fullName ||
-                                                    "Homeowner"}
-                                            </strong>
-
-                                        </div>
-
-
-                                        {/* Homeowner Email */}
-
-                                        <div className="booking-detail">
-
-                                            <span>
-                                                ✉️ Email
-                                            </span>
-
-                                            <strong>
-                                                {homeowner?.email ||
-                                                    "Not available"}
-                                            </strong>
-
-                                        </div>
-
-
-                                        {/* Homeowner Phone */}
-
-                                        <div className="booking-detail">
-
-                                            <span>
-                                                📞 Phone
-                                            </span>
-
-                                            <strong>
-                                                {homeowner?.phone ||
-                                                    "Not available"}
-                                            </strong>
-
-                                        </div>
-
-
-                                        {/* Date */}
-
-                                        <div className="booking-detail">
-
-                                            <span>
-                                                📅 Date
-                                            </span>
-
-                                            <strong>
-                                                {formatDate(
-                                                    booking.scheduledDate
+                                                {formatStatus(
+                                                    booking.status
                                                 )}
-                                            </strong>
-
-                                        </div>
-
-
-                                        {/* Time */}
-
-                                        <div className="booking-detail">
-
-                                            <span>
-                                                🕐 Time
                                             </span>
 
-                                            <strong>
-                                                {formatTime(
-                                                    booking.scheduledTime
-                                                )}
-                                            </strong>
+                                        </div>
+
+                                        {/* RESCHEDULE NOTICE */}
+
+                                        {isRescheduleRequest && (
+                                            <div className="booking-status-message rescheduled-message">
+                                                <span>📅</span>
+
+                                                <div>
+                                                    <strong>
+                                                        Homeowner requested a new date and time
+                                                    </strong>
+
+                                                    <p>
+                                                        Please review the updated
+                                                        schedule below and accept
+                                                        or decline the rescheduled booking.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* BOOKING DETAILS */}
+
+                                        <div className="booking-card-content">
+
+                                            <div className="booking-detail">
+
+                                                <span>
+                                                    👤 Homeowner
+                                                </span>
+
+                                                <strong>
+                                                    {getHomeownerName(
+                                                        homeowner
+                                                    )}
+                                                </strong>
+
+                                            </div>
+
+                                            <div className="booking-detail">
+
+                                                <span>
+                                                    ✉️ Email
+                                                </span>
+
+                                                <strong>
+                                                    {
+                                                        homeowner?.email ||
+                                                        "Not available"
+                                                    }
+                                                </strong>
+
+                                            </div>
+
+                                            <div className="booking-detail">
+
+                                                <span>
+                                                    📞 Phone
+                                                </span>
+
+                                                <strong>
+                                                    {
+                                                        homeowner?.phone ||
+                                                        "Not available"
+                                                    }
+                                                </strong>
+
+                                            </div>
+
+                                            <div className="booking-detail">
+
+                                                <span>
+                                                    📅 Date
+                                                </span>
+
+                                                <strong>
+                                                    {formatDate(
+                                                        booking.scheduledDate
+                                                    )}
+                                                </strong>
+
+                                            </div>
+
+                                            <div className="booking-detail">
+
+                                                <span>
+                                                    🕐 Time
+                                                </span>
+
+                                                <strong>
+                                                    {formatTime(
+                                                        booking.scheduledTime
+                                                    )}
+                                                </strong>
+
+                                            </div>
+
+                                            <div className="booking-detail">
+
+                                                <span>
+                                                    📍 Location
+                                                </span>
+
+                                                <strong>
+                                                    {
+                                                        booking.jobLocation ||
+                                                        "Not specified"
+                                                    }
+                                                </strong>
+
+                                            </div>
+
+                                            <div className="booking-detail">
+
+                                                <span>
+                                                    💰 Budget
+                                                </span>
+
+                                                <strong>
+                                                    {formatCurrency(
+                                                        booking.estimatedBudget
+                                                    )}
+                                                </strong>
+
+                                            </div>
+
+                                            <div className="booking-detail">
+
+                                                <span>
+                                                    💵 Callout Fee
+                                                </span>
+
+                                                <strong>
+                                                    {formatCurrency(
+                                                        booking.calloutFee
+                                                    )}
+                                                </strong>
+
+                                            </div>
 
                                         </div>
 
+                                        {/* DESCRIPTION */}
 
-                                        {/* Location */}
-
-                                        <div className="booking-detail">
+                                        <div className="booking-description">
 
                                             <span>
-                                                📍 Location
+                                                JOB DESCRIPTION
                                             </span>
 
-                                            <strong>
-                                                {booking.jobLocation ||
-                                                    "Not specified"}
-                                            </strong>
+                                            <p>
+                                                {
+                                                    booking.jobDescription ||
+                                                    "No description provided."
+                                                }
+                                            </p>
 
                                         </div>
 
+                                        {/* ACTIONS */}
 
-                                        {/* Budget */}
-
-                                        <div className="booking-detail">
-
-                                            <span>
-                                                💰 Budget
-                                            </span>
-
-                                            <strong>
-                                                {booking.estimatedBudget
-                                                    ? `R${booking.estimatedBudget}`
-                                                    : "Not specified"}
-                                            </strong>
-
-                                        </div>
-
-
-                                        {/* Callout Fee */}
-
-                                        <div className="booking-detail">
-
-                                            <span>
-                                                💵 Callout Fee
-                                            </span>
-
-                                            <strong>
-                                                {booking.calloutFee
-                                                    ? `R${booking.calloutFee}`
-                                                    : "Not specified"}
-                                            </strong>
-
-                                        </div>
-
-                                    </div>
-
-
-                                    {/* =========================
-                                        JOB DESCRIPTION
-                                    ========================== */}
-
-                                    <div className="booking-description">
-
-                                        <span>
-                                            JOB DESCRIPTION
-                                        </span>
-
-                                        <p>
-                                            {booking.jobDescription ||
-                                                "No description provided."}
-                                        </p>
-
-                                    </div>
-
-
-                                    {/* =========================
-                                        ACTION BUTTONS
-                                    ========================== */}
-
-                                    {booking.status ===
-                                        "REQUESTED" && (
-
+                                        {isPendingFundiDecision(
+                                            booking.status
+                                        ) && (
                                             <div className="booking-actions">
 
                                                 <button
                                                     type="button"
                                                     className="accept-booking-button"
-                                                    disabled={isUpdating}
+                                                    disabled={
+                                                        isUpdating
+                                                    }
                                                     onClick={() =>
                                                         updateBookingStatus(
                                                             booking.id,
@@ -614,18 +1097,19 @@ function FundiBookings() {
                                                         )
                                                     }
                                                 >
-
                                                     {isUpdating
                                                         ? "Updating..."
-                                                        : "✓ Accept Booking"}
-
+                                                        : isRescheduleRequest
+                                                            ? "✓ Accept Rescheduled Booking"
+                                                            : "✓ Accept Booking"}
                                                 </button>
-
 
                                                 <button
                                                     type="button"
                                                     className="decline-booking-button"
-                                                    disabled={isUpdating}
+                                                    disabled={
+                                                        isUpdating
+                                                    }
                                                     onClick={() =>
                                                         updateBookingStatus(
                                                             booking.id,
@@ -633,94 +1117,104 @@ function FundiBookings() {
                                                         )
                                                     }
                                                 >
-
                                                     {isUpdating
                                                         ? "Updating..."
                                                         : "✕ Decline"}
-
                                                 </button>
 
                                             </div>
-
                                         )}
 
+                                        {/* ACCEPTED */}
 
-                                    {/* =========================
-                                        ACCEPTED MESSAGE
-                                    ========================== */}
+                                        {booking.status ===
+                                            "ACCEPTED" && (
+                                                <div className="booking-status-message accepted-message">
+                                                    <span>✓</span>
 
-                                    {booking.status ===
-                                        "ACCEPTED" && (
+                                                    <div>
+                                                        <strong>
+                                                            Booking accepted
+                                                        </strong>
 
-                                            <div className="booking-status-message accepted-message">
+                                                        <p>
+                                                            You can now prepare
+                                                            for the job.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )}
 
-                                                ✓ This booking has been
-                                                accepted.
+                                        {/* DECLINED */}
 
-                                            </div>
+                                        {booking.status ===
+                                            "DECLINED" && (
+                                                <div className="booking-status-message declined-message">
+                                                    <span>✕</span>
 
-                                        )}
+                                                    <div>
+                                                        <strong>
+                                                            Booking declined
+                                                        </strong>
 
+                                                        <p>
+                                                            This booking request
+                                                            has been declined.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )}
 
-                                    {/* =========================
-                                        DECLINED MESSAGE
-                                    ========================== */}
+                                        {/* COMPLETED */}
 
-                                    {booking.status ===
-                                        "DECLINED" && (
+                                        {booking.status ===
+                                            "COMPLETED" && (
+                                                <div className="booking-status-message completed-message">
+                                                    <span>✓</span>
 
-                                            <div className="booking-status-message declined-message">
+                                                    <div>
+                                                        <strong>
+                                                            Job completed
+                                                        </strong>
 
-                                                ✕ This booking has been
-                                                declined.
+                                                        <p>
+                                                            This booking has
+                                                            been completed.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )}
 
-                                            </div>
+                                        {/* CANCELLED */}
 
-                                        )}
+                                        {booking.status ===
+                                            "CANCELLED" && (
+                                                <div className="booking-status-message cancelled-message">
+                                                    <span>×</span>
 
+                                                    <div>
+                                                        <strong>
+                                                            Booking cancelled
+                                                        </strong>
 
-                                    {/* =========================
-                                        COMPLETED MESSAGE
-                                    ========================== */}
+                                                        <p>
+                                                            This booking has
+                                                            been cancelled by
+                                                            the homeowner.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )}
 
-                                    {booking.status ===
-                                        "COMPLETED" && (
-
-                                            <div className="booking-status-message completed-message">
-
-                                                ✓ This booking has been
-                                                completed.
-
-                                            </div>
-
-                                        )}
-
-
-                                    {/* =========================
-                                        CANCELLED MESSAGE
-                                    ========================== */}
-
-                                    {booking.status ===
-                                        "CANCELLED" && (
-
-                                            <div className="booking-status-message cancelled-message">
-
-                                                This booking has been
-                                                cancelled.
-
-                                            </div>
-
-                                        )}
-
-                                </article>
-                            );
-                        })}
+                                    </article>
+                                );
+                            }
+                        )}
 
                     </section>
                 )}
 
             </div>
-
         </main>
     );
 }

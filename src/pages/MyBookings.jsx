@@ -1,15 +1,85 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "./MyBookings.css";
+import API_URL from "../api";
+
+/*
+ * =========================================================
+ * AUTHENTICATION HELPERS
+ * =========================================================
+ */
+
+function getLoggedInUser() {
+    const storedUser = localStorage.getItem("fundiShopUser");
+
+    if (!storedUser) {
+        return null;
+    }
+
+    try {
+        return JSON.parse(storedUser);
+    } catch (error) {
+        console.error("Invalid stored user:", error);
+
+        localStorage.removeItem("fundiShopUser");
+
+        return null;
+    }
+}
+
+function getAuthHeaders(includeJson = false) {
+    const user = getLoggedInUser();
+
+    const headers = {};
+
+    if (includeJson) {
+        headers["Content-Type"] = "application/json";
+    }
+
+    if (user?.token) {
+        headers["Authorization"] = `Bearer ${user.token}`;
+    }
+
+    return headers;
+}
+
+/*
+ * =========================================================
+ * BOOKING STATUS HELPER
+ * Declared outside the component so hooks can safely use it.
+ * =========================================================
+ */
+
+function getBookingStatus(booking) {
+    return (
+        booking?.status ||
+        booking?.bookingStatus ||
+        "REQUESTED"
+    );
+}
+
+/*
+ * =========================================================
+ * COMPONENT
+ * =========================================================
+ */
 
 function MyBookings() {
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
+    /*
+     * CANCEL
+     */
+
     const [cancelTarget, setCancelTarget] = useState(null);
     const [cancelling, setCancelling] = useState(false);
     const [cancelError, setCancelError] = useState("");
+
+    /*
+     * RESCHEDULE
+     */
 
     const [rescheduleTarget, setRescheduleTarget] = useState(null);
     const [rescheduleDate, setRescheduleDate] = useState("");
@@ -17,55 +87,219 @@ function MyBookings() {
     const [rescheduling, setRescheduling] = useState(false);
     const [rescheduleError, setRescheduleError] = useState("");
 
+    /*
+     * REVIEW
+     */
+
+    const [reviewTarget, setReviewTarget] = useState(null);
+    const [reviewRating, setReviewRating] = useState(5);
+    const [reviewComment, setReviewComment] = useState("");
+    const [reviewSubmitting, setReviewSubmitting] = useState(false);
+    const [reviewError, setReviewError] = useState("");
+    const [reviewSuccess, setReviewSuccess] = useState("");
+    const [reviewedBookings, setReviewedBookings] = useState(new Set());
+
+    /*
+     * =========================================================
+     * LOAD BOOKINGS
+     * =========================================================
+     */
+
     useEffect(() => {
+        let cancelled = false;
+
+        const loadBookings = async () => {
+            try {
+                setLoading(true);
+                setError("");
+
+                const user = getLoggedInUser();
+
+                if (!user) {
+                    if (!cancelled) {
+                        setError(
+                            "Please log in to view your bookings."
+                        );
+                    }
+
+                    return;
+                }
+
+                if (!user.id || user.role !== "HOMEOWNER") {
+                    if (!cancelled) {
+                        setError(
+                            "Please log in as a homeowner to view your bookings."
+                        );
+                    }
+
+                    return;
+                }
+
+                if (!user.token) {
+                    if (!cancelled) {
+                        setError(
+                            "Your login session has expired. Please log in again."
+                        );
+                    }
+
+                    return;
+                }
+
+                const response = await fetch(
+                    `${API_URL}/api/bookings/customer/${user.id}`,
+                    {
+                        method: "GET",
+                        headers: getAuthHeaders(),
+                    }
+                );
+
+                if (!response.ok) {
+                    let message = "Failed to load bookings.";
+
+                    try {
+                        const errorData = await response.json();
+
+                        message =
+                            errorData?.message ||
+                            errorData?.error ||
+                            message;
+                    } catch {
+                        // Response did not contain JSON.
+                    }
+
+                    throw new Error(message);
+                }
+
+                const data = await response.json();
+
+                if (!cancelled) {
+                    setBookings(
+                        Array.isArray(data) ? data : []
+                    );
+                }
+            } catch (err) {
+                console.error(
+                    "Error loading bookings:",
+                    err
+                );
+
+                if (!cancelled) {
+                    setError(
+                        err.message ||
+                        "Unable to load your bookings. Please try again."
+                    );
+                }
+            } finally {
+                if (!cancelled) {
+                    setLoading(false);
+                }
+            }
+        };
+
         loadBookings();
+
+        return () => {
+            cancelled = true;
+        };
     }, []);
 
-    const loadBookings = async () => {
-        try {
-            const storedUser = JSON.parse(
-                localStorage.getItem("fundiShopUser")
+    /*
+     * =========================================================
+     * CHECK EXISTING REVIEWS
+     * =========================================================
+     */
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const loadExistingReviews = async () => {
+            const completedBookings = bookings.filter(
+                (booking) =>
+                    getBookingStatus(booking) === "COMPLETED"
             );
 
-            if (!storedUser?.id) {
-                setError("Please log in to view your bookings.");
-                setLoading(false);
+            if (completedBookings.length === 0) {
+                setReviewedBookings(new Set());
                 return;
             }
 
-            const response = await fetch(
-                `http://localhost:8080/api/bookings/customer/${storedUser.id}`
+            const results = await Promise.all(
+                completedBookings.map(async (booking) => {
+                    try {
+                        const response = await fetch(
+                            `${API_URL}/api/reviews/booking/${booking.id}`,
+                            {
+                                method: "GET",
+                                headers: getAuthHeaders(),
+                            }
+                        );
+
+                        if (response.ok) {
+                            return booking.id;
+                        }
+
+                        return null;
+                    } catch (error) {
+                        console.error(
+                            "Error checking review:",
+                            error
+                        );
+
+                        return null;
+                    }
+                })
             );
 
-            if (!response.ok) {
-                throw new Error("Failed to load bookings.");
+            if (!cancelled) {
+                setReviewedBookings(
+                    new Set(
+                        results.filter(
+                            (id) => id !== null
+                        )
+                    )
+                );
             }
+        };
 
-            const data = await response.json();
-
-            setBookings(Array.isArray(data) ? data : []);
-        } catch (err) {
-            console.error("Error loading bookings:", err);
-
-            setError(
-                "Unable to load your bookings. Please try again."
-            );
-        } finally {
-            setLoading(false);
+        if (!loading && !error) {
+            loadExistingReviews();
         }
-    };
 
-    /* =========================
-       FUNDİ INFORMATION
-    ========================= */
+        return () => {
+            cancelled = true;
+        };
+    }, [bookings, loading, error]);
+
+    /*
+     * =========================================================
+     * FUNDI INFORMATION
+     * =========================================================
+     */
 
     const getFundiName = (booking) => {
-        return (
-            booking?.fundiProfile?.user?.fullName ||
-            booking?.fundiProfile?.user?.name ||
-            booking?.fundiProfile?.name ||
-            "Fundi"
-        );
+        const user = booking?.fundiProfile?.user;
+
+        if (user?.fullName) {
+            return user.fullName;
+        }
+
+        if (user?.firstName && user?.lastName) {
+            return `${user.firstName} ${user.lastName}`;
+        }
+
+        if (user?.firstName) {
+            return user.firstName;
+        }
+
+        if (user?.name) {
+            return user.name;
+        }
+
+        if (booking?.fundiProfile?.name) {
+            return booking.fundiProfile.name;
+        }
+
+        return "Fundi";
     };
 
     const getFundiTrade = (booking) => {
@@ -91,15 +325,17 @@ function MyBookings() {
             GENERAL: "General Handyman",
         };
 
-        return (
-            tradeNames[tradeCategory] ||
-            tradeCategory
-                .toLowerCase()
-                .replace(/_/g, " ")
-                .replace(/\b\w/g, (letter) =>
-                    letter.toUpperCase()
-                )
-        );
+        if (tradeNames[tradeCategory]) {
+            return tradeNames[tradeCategory];
+        }
+
+        return tradeCategory
+            .toLowerCase()
+            .replace(/_/g, " ")
+            .replace(
+                /\b\w/g,
+                (letter) => letter.toUpperCase()
+            );
     };
 
     const getInitials = (name) => {
@@ -117,9 +353,47 @@ function MyBookings() {
             .toUpperCase();
     };
 
-    /* =========================
-       DATE / TIME
-    ========================= */
+    /*
+     * =========================================================
+     * SERVICE
+     * =========================================================
+     */
+
+    const formatService = (service) => {
+        if (!service) {
+            return "Not specified";
+        }
+
+        return service
+            .toLowerCase()
+            .replace(/_/g, " ")
+            .replace(
+                /\b\w/g,
+                (letter) => letter.toUpperCase()
+            );
+    };
+
+    /*
+     * =========================================================
+     * DATE / TIME
+     * =========================================================
+     */
+
+    const getTodayDate = () => {
+        const today = new Date();
+
+        const year = today.getFullYear();
+
+        const month = String(
+            today.getMonth() + 1
+        ).padStart(2, "0");
+
+        const day = String(
+            today.getDate()
+        ).padStart(2, "0");
+
+        return `${year}-${month}-${day}`;
+    };
 
     const formatDate = (date) => {
         if (!date) {
@@ -127,17 +401,26 @@ function MyBookings() {
         }
 
         try {
-            const parsedDate = new Date(`${date}T00:00:00`);
+            const parsedDate = new Date(
+                `${date}T00:00:00`
+            );
 
-            if (Number.isNaN(parsedDate.getTime())) {
+            if (
+                Number.isNaN(
+                    parsedDate.getTime()
+                )
+            ) {
                 return date;
             }
 
-            return parsedDate.toLocaleDateString("en-ZA", {
-                day: "2-digit",
-                month: "long",
-                year: "numeric",
-            });
+            return parsedDate.toLocaleDateString(
+                "en-ZA",
+                {
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric",
+                }
+            );
         } catch {
             return date;
         }
@@ -148,12 +431,14 @@ function MyBookings() {
             return "Not specified";
         }
 
-        return time.substring(0, 5);
+        return String(time).substring(0, 5);
     };
 
-    /* =========================
-       STATUS
-    ========================= */
+    /*
+     * =========================================================
+     * STATUS
+     * =========================================================
+     */
 
     const getStatusClass = (status) => {
         switch (status) {
@@ -186,14 +471,17 @@ function MyBookings() {
         return status
             .toLowerCase()
             .replace(/_/g, " ")
-            .replace(/\b\w/g, (letter) =>
-                letter.toUpperCase()
+            .replace(
+                /\b\w/g,
+                (letter) => letter.toUpperCase()
             );
     };
 
-    /* =========================
-       BUDGET
-    ========================= */
+    /*
+     * =========================================================
+     * BUDGET
+     * =========================================================
+     */
 
     const formatBudget = (budget) => {
         if (
@@ -210,18 +498,41 @@ function MyBookings() {
             return `R ${budget}`;
         }
 
-        return `R ${number.toLocaleString("en-ZA", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        })}`;
+        return `R ${number.toLocaleString(
+            "en-ZA",
+            {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            }
+)}`;
     };
 
-    /* =========================
-       CANCEL BOOKING
-    ========================= */
+    /*
+     * =========================================================
+     * CANCEL BOOKING
+     * =========================================================
+     */
 
     const canCancel = (status) => {
-        return status === "REQUESTED" || status === "ACCEPTED";
+        return (
+            status === "REQUESTED" ||
+            status === "ACCEPTED" ||
+            status === "RESCHEDULED"
+        );
+    };
+
+    const openCancel = (booking) => {
+        setCancelTarget(booking);
+        setCancelError("");
+    };
+
+    const closeCancel = () => {
+        if (cancelling) {
+            return;
+        }
+
+        setCancelTarget(null);
+        setCancelError("");
     };
 
     const confirmCancel = async () => {
@@ -233,670 +544,1096 @@ function MyBookings() {
         setCancelError("");
 
         try {
-            const response = await fetch(
-                `http://localhost:8080/api/bookings/${cancelTarget.id}/status?status=CANCELLED`,
-                { method: "PUT" }
-            );
+            const user = getLoggedInUser();
 
-            if (!response.ok) {
-                const message = await response.text();
-
+            if (!user?.token) {
                 throw new Error(
-                    message || "Unable to cancel booking."
+                    "Your login session has expired. Please log in again."
                 );
             }
 
-            const updatedBooking = await response.json();
-
-            setBookings((prev) =>
-                prev.map((booking) =>
-                    booking.id === cancelTarget.id
-                        ? updatedBooking
-                        : booking
-                )
-            );
-
-            setCancelTarget(null);
-        } catch (err) {
-            console.error("Error cancelling booking:", err);
-
-            setCancelError(
-                err.message ||
-                "Something went wrong. Please try again."
-            );
-        } finally {
-            setCancelling(false);
-        }
-    };
-
-    /* =========================
-       RESCHEDULE BOOKING
-    ========================= */
-
-    const canReschedule = (status) => {
-        return status === "REQUESTED" || status === "ACCEPTED";
-    };
-
-    const openReschedule = (booking) => {
-        setRescheduleTarget(booking);
-        setRescheduleDate(booking.scheduledDate || "");
-        setRescheduleTime(
-            booking.scheduledTime
-                ? booking.scheduledTime.substring(0, 5)
-                : ""
-        );
-        setRescheduleError("");
-    };
-
-    const closeReschedule = () => {
-        setRescheduleTarget(null);
-        setRescheduleDate("");
-        setRescheduleTime("");
-        setRescheduleError("");
-    };
-
-    const confirmReschedule = async () => {
-        if (!rescheduleTarget) {
-            return;
-        }
-
-        if (!rescheduleDate || !rescheduleTime) {
-            setRescheduleError(
-                "Please choose a date and time."
-            );
-            return;
-        }
-
-        setRescheduling(true);
-        setRescheduleError("");
-
-        try {
             const response = await fetch(
-                `http://localhost:8080/api/bookings/${rescheduleTarget.id}/reschedule`,
-                {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        scheduledDate: rescheduleDate,
-                        scheduledTime: rescheduleTime,
-                    }),
-                }
-            );
+                `${API_URL}/api/bookings/${cancelTarget.id}/status?status=CANCELLED`,
+{
+    method: "PUT",
+        headers: getAuthHeaders(true),
+}
+);
 
-            if (!response.ok) {
-                const message = await response.text();
+const contentType =
+    response.headers.get("content-type");
 
-                throw new Error(
-                    message || "Unable to reschedule booking."
-                );
-            }
+let updatedBooking = null;
 
-            const updatedBooking = await response.json();
+if (
+    contentType &&
+    contentType.includes(
+        "application/json"
+    )
+) {
+    updatedBooking =
+        await response.json();
+}
 
-            setBookings((prev) =>
-                prev.map((booking) =>
-                    booking.id === rescheduleTarget.id
-                        ? updatedBooking
-                        : booking
-                )
-            );
+if (!response.ok) {
+    throw new Error(
+        updatedBooking?.message ||
+        updatedBooking?.error ||
+        "Unable to cancel booking."
+    );
+}
 
-            closeReschedule();
-        } catch (err) {
-            console.error("Error rescheduling booking:", err);
+setBookings(
+    (previousBookings) =>
+        previousBookings.map(
+            (booking) =>
+                booking.id ===
+                cancelTarget.id
+                    ? updatedBooking ||
+                    {
+                        ...booking,
+                        status:
+                            "CANCELLED",
+                    }
+                    : booking
+        )
+);
 
-            setRescheduleError(
-                err.message ||
-                "Something went wrong. Please try again."
-            );
-        } finally {
-            setRescheduling(false);
-        }
-    };
+closeCancel();
+} catch (err) {
+    console.error(
+        "Error cancelling booking:",
+        err
+    );
 
-    /* =========================
-       RETRY
-    ========================= */
+    setCancelError(
+        err.message ||
+        "Something went wrong. Please try again."
+    );
+} finally {
+    setCancelling(false);
+}
+};
 
-    const handleRetry = () => {
-        setError("");
-        setLoading(true);
-        loadBookings();
-    };
+/*
+ * =========================================================
+ * RESCHEDULE BOOKING
+ * =========================================================
+ */
 
+const canReschedule = (status) => {
     return (
-        <main className="my-bookings-page">
-            <div className="my-bookings-container">
+        status === "REQUESTED" ||
+        status === "ACCEPTED" ||
+        status === "RESCHEDULED"
+    );
+};
 
-                {/* =========================
-                    BACK LINK
-                ========================= */}
+const openReschedule = (booking) => {
+    setRescheduleTarget(booking);
 
-                <Link
-                    to="/homeowner"
-                    className="bookings-back-link"
-                >
-                    ← Back to Dashboard
-                </Link>
+    setRescheduleDate(
+        booking.scheduledDate || ""
+    );
 
+    setRescheduleTime(
+        booking.scheduledTime
+            ? String(
+                booking.scheduledTime
+            ).substring(0, 5)
+            : ""
+    );
 
-                {/* =========================
-                    HEADER
-                ========================= */}
+    setRescheduleError("");
+};
 
-                <section className="my-bookings-header">
+const closeReschedule = () => {
+    if (rescheduling) {
+        return;
+    }
 
-                    <div className="my-bookings-header-content">
+    setRescheduleTarget(null);
+    setRescheduleDate("");
+    setRescheduleTime("");
+    setRescheduleError("");
+};
+
+const confirmReschedule = async () => {
+    if (!rescheduleTarget) {
+        return;
+    }
+
+    if (!rescheduleDate || !rescheduleTime) {
+        setRescheduleError(
+            "Please choose a date and time."
+        );
+
+        return;
+    }
+
+    if (rescheduleDate < getTodayDate()) {
+        setRescheduleError(
+            "Please choose today or a future date."
+        );
+
+        return;
+    }
+
+    setRescheduling(true);
+    setRescheduleError("");
+
+    try {
+        const user = getLoggedInUser();
+
+        if (!user?.token) {
+            throw new Error(
+                "Your login session has expired. Please log in again."
+            );
+        }
+
+        const response = await fetch(
+            `${API_URL}/api/bookings/${rescheduleTarget.id}/reschedule`,
+            {
+                method: "PUT",
+                headers: getAuthHeaders(true),
+                body: JSON.stringify({
+                    scheduledDate:
+                    rescheduleDate,
+                    scheduledTime:
+                    rescheduleTime,
+                }),
+            }
+        );
+
+        const contentType =
+            response.headers.get(
+                "content-type"
+            );
+
+        let updatedBooking = null;
+
+        if (
+            contentType &&
+            contentType.includes(
+                "application/json"
+            )
+        ) {
+            updatedBooking =
+                await response.json();
+        }
+
+        if (!response.ok) {
+            throw new Error(
+                updatedBooking?.message ||
+                updatedBooking?.error ||
+                "Unable to reschedule booking."
+            );
+        }
+
+        setBookings(
+            (previousBookings) =>
+                previousBookings.map(
+                    (booking) => {
+                        if (
+                            booking.id !==
+                            rescheduleTarget.id
+                        ) {
+                            return booking;
+                        }
+
+                        if (updatedBooking) {
+                            return updatedBooking;
+                        }
+
+                        const currentStatus =
+                            getBookingStatus(
+                                booking
+                            );
+
+                        const nextStatus =
+                            currentStatus ===
+                            "REQUESTED"
+                                ? "REQUESTED"
+                                : "RESCHEDULED";
+
+                        return {
+                            ...booking,
+                            scheduledDate:
+                            rescheduleDate,
+                            scheduledTime:
+                            rescheduleTime,
+                            status:
+                            nextStatus,
+                        };
+                    }
+                )
+        );
+
+        closeReschedule();
+    } catch (err) {
+        console.error(
+            "Error rescheduling booking:",
+            err
+        );
+
+        setRescheduleError(
+            err.message ||
+            "Something went wrong. Please try again."
+        );
+    } finally {
+        setRescheduling(false);
+    }
+};
+
+/*
+ * =========================================================
+ * REVIEW
+ * =========================================================
+ */
+
+const openReview = (booking) => {
+    setReviewTarget(booking);
+    setReviewRating(5);
+    setReviewComment("");
+    setReviewError("");
+    setReviewSuccess("");
+};
+
+const closeReview = () => {
+    if (reviewSubmitting) {
+        return;
+    }
+
+    setReviewTarget(null);
+    setReviewRating(5);
+    setReviewComment("");
+    setReviewError("");
+    setReviewSuccess("");
+};
+
+const submitReview = async () => {
+    if (!reviewTarget) {
+        return;
+    }
+
+    const user = getLoggedInUser();
+
+    if (!user?.id || !user?.token) {
+        setReviewError(
+            "Your login session has expired. Please log in again."
+        );
+
+        return;
+    }
+
+    if (
+        reviewRating < 1 ||
+        reviewRating > 5
+    ) {
+        setReviewError(
+            "Please select a rating between 1 and 5."
+        );
+
+        return;
+    }
+
+    setReviewSubmitting(true);
+    setReviewError("");
+    setReviewSuccess("");
+
+    try {
+        const params =
+            new URLSearchParams();
+
+        params.set(
+            "customerId",
+            user.id
+        );
+
+        params.set(
+            "rating",
+            reviewRating
+        );
+
+        if (reviewComment.trim()) {
+            params.set(
+                "comment",
+                reviewComment.trim()
+            );
+        }
+
+        const response = await fetch(
+            `${API_URL}/api/reviews/booking/${reviewTarget.id}?${params.toString()}`,
+            {
+                method: "POST",
+                headers: getAuthHeaders(),
+            }
+        );
+
+        const contentType =
+            response.headers.get(
+                "content-type"
+            );
+
+        let responseData = null;
+
+        if (
+            contentType &&
+            contentType.includes(
+                "application/json"
+            )
+        ) {
+            responseData =
+                await response.json();
+        }
+
+        if (!response.ok) {
+            throw new Error(
+                responseData?.message ||
+                responseData?.error ||
+                `Unable to submit review. HTTP ${response.status}`
+            );
+        }
+
+        setReviewedBookings(
+            (previous) => {
+                const updated =
+                    new Set(previous);
+
+                updated.add(
+                    reviewTarget.id
+                );
+
+                return updated;
+            }
+        );
+
+        setReviewSuccess(
+            "Your review has been submitted successfully."
+        );
+
+        setTimeout(() => {
+            closeReview();
+        }, 1200);
+    } catch (err) {
+        console.error(
+            "Error submitting review:",
+            err
+        );
+
+        setReviewError(
+            err.message ||
+            "Unable to submit your review. Please try again."
+        );
+    } finally {
+        setReviewSubmitting(false);
+    }
+};
+
+/*
+ * =========================================================
+ * RETRY
+ * =========================================================
+ */
+
+const handleRetry = () => {
+    window.location.reload();
+};
+
+/*
+ * =========================================================
+ * PAGE
+ * =========================================================
+ */
+
+return (
+    <main className="my-bookings-page">
+
+        <div className="my-bookings-container">
+
+            <Link
+                to="/homeowner"
+                className="bookings-back-link"
+            >
+                ← Back to Dashboard
+            </Link>
+
+            <section className="my-bookings-header">
+
+                <div className="my-bookings-header-content">
 
                         <span className="bookings-label">
                             HOMEOWNER
                         </span>
 
-                        <h1>
-                            My Bookings
-                        </h1>
+                    <h1>
+                        My Bookings
+                    </h1>
 
-                        <p>
-                            View and manage all the Fundi
-                            services you have requested.
-                        </p>
+                    <p>
+                        View and manage all the Fundi
+                        services you have requested.
+                    </p>
 
+                </div>
+
+                <Link
+                    to="/fundis"
+                    className="find-fundi-button"
+                >
+                    Find a Fundi
+                </Link>
+
+            </section>
+
+            {loading && (
+                <div className="bookings-message">
+
+                    <div className="loading-icon">
+                        ⏳
                     </div>
 
-                    <Link
-                        to="/fundis"
-                        className="find-fundi-button"
+                    <h2>
+                        Loading your bookings...
+                    </h2>
+
+                    <p>
+                        Please wait while we retrieve
+                        your bookings.
+                    </p>
+
+                </div>
+            )}
+
+            {!loading && error && (
+                <div className="bookings-message error-message">
+
+                    <div className="message-icon">
+                        ⚠️
+                    </div>
+
+                    <h2>
+                        Something went wrong
+                    </h2>
+
+                    <p>
+                        {error}
+                    </p>
+
+                    <button
+                        type="button"
+                        className="retry-button"
+                        onClick={handleRetry}
                     >
-                        Find a Fundi
-                    </Link>
+                        Try Again
+                    </button>
 
-                </section>
+                </div>
+            )}
 
-
-                {/* =========================
-                    LOADING
-                ========================= */}
-
-                {loading && (
+            {!loading &&
+                !error &&
+                bookings.length === 0 && (
                     <div className="bookings-message">
 
-                        <div className="loading-icon">
-                            ⏳
-                        </div>
-
-                        <h2>
-                            Loading your bookings...
-                        </h2>
-
-                        <p>
-                            Please wait while we retrieve
-                            your bookings.
-                        </p>
-
-                    </div>
-                )}
-
-
-                {/* =========================
-                    ERROR
-                ========================= */}
-
-                {!loading && error && (
-                    <div className="bookings-message error-message">
-
                         <div className="message-icon">
-                            ⚠️
+                            📅
                         </div>
 
                         <h2>
-                            Something went wrong
+                            You don't have any bookings yet
                         </h2>
 
                         <p>
-                            {error}
+                            Find a trusted Fundi and book
+                            a professional for your next job.
                         </p>
 
-                        <button
-                            className="retry-button"
-                            onClick={handleRetry}
+                        <Link
+                            to="/fundis"
+                            className="browse-fundis-button"
                         >
-                            Try Again
-                        </button>
+                            Find a Fundi
+                        </Link>
 
                     </div>
                 )}
 
+            {!loading &&
+                !error &&
+                bookings.length > 0 && (
+                    <section className="bookings-section">
 
-                {/* =========================
-                    NO BOOKINGS
-                ========================= */}
+                        <div className="bookings-section-heading">
 
-                {!loading &&
-                    !error &&
-                    bookings.length === 0 && (
-                        <div className="bookings-message">
+                            <div>
 
-                            <div className="message-icon">
-                                📅
-                            </div>
-
-                            <h2>
-                                You don't have any bookings yet
-                            </h2>
-
-                            <p>
-                                Find a trusted Fundi and book
-                                a professional for your next job.
-                            </p>
-
-                            <Link
-                                to="/fundis"
-                                className="browse-fundis-button"
-                            >
-                                Find a Fundi
-                            </Link>
-
-                        </div>
-                    )}
-
-
-                {/* =========================
-                    BOOKINGS
-                ========================= */}
-
-                {!loading &&
-                    !error &&
-                    bookings.length > 0 && (
-                        <section className="bookings-section">
-
-                            <div className="bookings-section-heading">
-
-                                <div>
                                     <span>
                                         YOUR BOOKINGS
                                     </span>
 
-                                    <h2>
-                                        {bookings.length}{" "}
-                                        {bookings.length === 1
-                                            ? "Booking"
-                                            : "Bookings"}
-                                    </h2>
-                                </div>
+                                <h2>
+                                    {bookings.length}{" "}
+                                    {bookings.length === 1
+                                        ? "Booking"
+                                        : "Bookings"}
+                                </h2>
 
                             </div>
 
+                        </div>
 
-                            <div className="bookings-list">
+                        <div className="bookings-list">
 
-                                {bookings.map((booking) => {
+                            {bookings.map((booking) => {
 
-                                    const fundiName =
-                                        getFundiName(booking);
+                                const fundiName =
+                                    getFundiName(
+                                        booking
+                                    );
 
-                                    const fundiTrade =
-                                        getFundiTrade(booking);
+                                const fundiTrade =
+                                    getFundiTrade(
+                                        booking
+                                    );
 
-                                    return (
-                                        <article
-                                            className="booking-card"
-                                            key={booking.id}
-                                        >
+                                const bookingStatus =
+                                    getBookingStatus(
+                                        booking
+                                    );
 
-                                            {/* =========================
-                                                FUNDİ
-                                            ========================= */}
+                                const canReview =
+                                    bookingStatus ===
+                                    "COMPLETED";
 
-                                            <div className="booking-fundi">
+                                const alreadyReviewed =
+                                    reviewedBookings.has(
+                                        booking.id
+                                    );
 
-                                                <div className="booking-avatar">
-                                                    {getInitials(
-                                                        fundiName
-                                                    )}
-                                                </div>
+                                return (
+                                    <article
+                                        className="booking-card"
+                                        key={
+                                            booking.id
+                                        }
+                                    >
 
-                                                <div className="booking-fundi-info">
+                                        <div className="booking-fundi">
 
-                                                    <h3>
-                                                        {fundiName}
-                                                    </h3>
+                                            <div className="booking-avatar">
+                                                {getInitials(
+                                                    fundiName
+                                                )}
+                                            </div>
 
-                                                    <p>
-                                                        {fundiTrade}
-                                                    </p>
+                                            <div className="booking-fundi-info">
 
-                                                </div>
+                                                <h3>
+                                                    {fundiName}
+                                                </h3>
+
+                                                <p>
+                                                    {fundiTrade}
+                                                </p>
 
                                             </div>
 
+                                        </div>
 
-                                            {/* =========================
-                                                STATUS
-                                            ========================= */}
-
-                                            <div className="booking-status-column">
+                                        <div className="booking-status-column">
 
                                                 <span
                                                     className={getStatusClass(
-                                                        booking.status
+                                                        bookingStatus
                                                     )}
                                                 >
                                                     {formatStatus(
-                                                        booking.status
+                                                        bookingStatus
                                                     )}
                                                 </span>
 
-                                            </div>
+                                        </div>
 
+                                        <div className="booking-details">
 
-                                            {/* =========================
-                                                DETAILS
-                                            ========================= */}
-
-                                            <div className="booking-details">
-
-                                                <div className="booking-detail">
-
+                                            <div className="booking-detail">
                                                     <span className="detail-label">
                                                         Service
                                                     </span>
 
-                                                    <strong>
-                                                        {booking.serviceRequired ||
-                                                            "Not specified"}
-                                                    </strong>
+                                                <strong>
+                                                    {formatService(
+                                                        booking.serviceRequired
+                                                    )}
+                                                </strong>
+                                            </div>
 
-                                                </div>
-
-
-                                                <div className="booking-detail">
-
+                                            <div className="booking-detail">
                                                     <span className="detail-label">
                                                         Date
                                                     </span>
 
-                                                    <strong>
-                                                        {formatDate(
-                                                            booking.scheduledDate
-                                                        )}
-                                                    </strong>
+                                                <strong>
+                                                    {formatDate(
+                                                        booking.scheduledDate
+                                                    )}
+                                                </strong>
+                                            </div>
 
-                                                </div>
-
-
-                                                <div className="booking-detail">
-
+                                            <div className="booking-detail">
                                                     <span className="detail-label">
                                                         Time
                                                     </span>
 
-                                                    <strong>
-                                                        {formatTime(
-                                                            booking.scheduledTime
-                                                        )}
-                                                    </strong>
+                                                <strong>
+                                                    {formatTime(
+                                                        booking.scheduledTime
+                                                    )}
+                                                </strong>
+                                            </div>
 
-                                                </div>
-
-
-                                                <div className="booking-detail">
-
+                                            <div className="booking-detail">
                                                     <span className="detail-label">
                                                         Location
                                                     </span>
 
-                                                    <strong>
-                                                        {booking.jobLocation ||
-                                                            "Not specified"}
-                                                    </strong>
+                                                <strong>
+                                                    {booking.jobLocation ||
+                                                        "Not specified"}
+                                                </strong>
+                                            </div>
 
-                                                </div>
-
-
-                                                <div className="booking-detail">
-
+                                            <div className="booking-detail">
                                                     <span className="detail-label">
                                                         Budget
                                                     </span>
 
-                                                    <strong>
-                                                        {formatBudget(
-                                                            booking.estimatedBudget
-                                                        )}
-                                                    </strong>
-
-                                                </div>
-
+                                                <strong>
+                                                    {formatBudget(
+                                                        booking.estimatedBudget
+                                                    )}
+                                                </strong>
                                             </div>
 
+                                        </div>
 
-                                            {/* =========================
-                                                DESCRIPTION
-                                            ========================= */}
-
-                                            {booking.jobDescription && (
-                                                <div className="booking-description">
+                                        {booking.jobDescription && (
+                                            <div className="booking-description">
 
                                                     <span>
                                                         Job Description
                                                     </span>
 
-                                                    <p>
-                                                        {booking.jobDescription}
-                                                    </p>
+                                                <p>
+                                                    {
+                                                        booking.jobDescription
+                                                    }
+                                                </p>
 
-                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="booking-actions">
+
+                                            {booking.fundiProfile?.id && (
+                                                <Link
+                                                    to={`/fundis/${booking.fundiProfile.id}`}
+                                                    className="view-fundi-button"
+                                                >
+                                                    View Fundi
+                                                </Link>
                                             )}
 
-
-                                            {/* =========================
-                                                ACTIONS
-                                            ========================= */}
-
-                                            <div className="booking-actions">
-
-                                                {booking.fundiProfile?.id && (
-                                                    <Link
-                                                        to={`/fundis/${booking.fundiProfile.id}`}
-                                                        className="view-fundi-button"
-                                                    >
-                                                        View Fundi
-                                                    </Link>
-                                                )}
-
-                                                {canReschedule(
-                                                    booking.status
-                                                ) && (
+                                            {canReview &&
+                                                !alreadyReviewed && (
                                                     <button
-                                                        className="reschedule-booking-button"
+                                                        type="button"
+                                                        className="review-booking-button"
                                                         onClick={() =>
-                                                            openReschedule(
+                                                            openReview(
                                                                 booking
                                                             )
                                                         }
                                                     >
-                                                        Reschedule
+                                                        Leave a Review
                                                     </button>
                                                 )}
 
-                                                {canCancel(
-                                                    booking.status
-                                                ) && (
-                                                    <button
-                                                        className="cancel-booking-button"
-                                                        onClick={() => {
-                                                            setCancelTarget(
-                                                                booking
-                                                            );
-                                                            setCancelError(
-                                                                ""
-                                                            );
-                                                        }}
-                                                    >
-                                                        Cancel Booking
-                                                    </button>
+                                            {canReview &&
+                                                alreadyReviewed && (
+                                                    <span className="review-submitted-label">
+                                                            ✓ Review Submitted
+                                                        </span>
                                                 )}
 
-                                            </div>
+                                            {canReschedule(
+                                                bookingStatus
+                                            ) && (
+                                                <button
+                                                    type="button"
+                                                    className="reschedule-booking-button"
+                                                    onClick={() =>
+                                                        openReschedule(
+                                                            booking
+                                                        )
+                                                    }
+                                                >
+                                                    Reschedule
+                                                </button>
+                                            )}
 
-                                        </article>
-                                    );
-                                })}
+                                            {canCancel(
+                                                bookingStatus
+                                            ) && (
+                                                <button
+                                                    type="button"
+                                                    className="cancel-booking-button"
+                                                    onClick={() =>
+                                                        openCancel(
+                                                            booking
+                                                        )
+                                                    }
+                                                >
+                                                    Cancel Booking
+                                                </button>
+                                            )}
 
-                            </div>
+                                        </div>
 
-                        </section>
+                                    </article>
+                                );
+                            })}
+
+                        </div>
+
+                    </section>
+                )}
+
+        </div>
+
+        {/* CANCEL MODAL */}
+
+        {cancelTarget && (
+            <div className="cancel-modal-overlay">
+
+                <div className="cancel-modal">
+
+                    <h3>
+                        Cancel this booking?
+                    </h3>
+
+                    <p>
+                        You're about to cancel your
+                        booking with{" "}
+                        <strong>
+                            {getFundiName(
+                                cancelTarget
+                            )}
+                        </strong>
+                        . This can't be undone.
+                    </p>
+
+                    {cancelError && (
+                        <p className="cancel-modal-error">
+                            {cancelError}
+                        </p>
                     )}
 
+                    <div className="cancel-modal-actions">
+
+                        <button
+                            type="button"
+                            className="keep-booking-button"
+                            onClick={closeCancel}
+                            disabled={cancelling}
+                        >
+                            Keep Booking
+                        </button>
+
+                        <button
+                            type="button"
+                            className="confirm-cancel-button"
+                            onClick={confirmCancel}
+                            disabled={cancelling}
+                        >
+                            {cancelling
+                                ? "Cancelling..."
+                                : "Cancel Booking"}
+                        </button>
+
+                    </div>
+
+                </div>
+
             </div>
+        )}
 
+        {/* RESCHEDULE MODAL */}
 
-            {/* =========================
-                CANCEL CONFIRMATION MODAL
-            ========================= */}
+        {rescheduleTarget && (
+            <div className="reschedule-modal-overlay">
 
-            {cancelTarget && (
-                <div className="cancel-modal-overlay">
-                    <div className="cancel-modal">
+                <div className="reschedule-modal">
+
+                    <h3>
+                        Reschedule this booking?
+                    </h3>
+
+                    <p>
+                        Pick a new date and time
+                        for your booking with{" "}
+                        <strong>
+                            {getFundiName(
+                                rescheduleTarget
+                            )}
+                        </strong>
+                        .
+                    </p>
+
+                    <div className="reschedule-modal-fields">
+
+                        <label>
+                                <span>
+                                    New date
+                                </span>
+
+                            <input
+                                type="date"
+                                min={getTodayDate()}
+                                value={
+                                    rescheduleDate
+                                }
+                                onChange={(event) =>
+                                    setRescheduleDate(
+                                        event.target.value
+                                    )
+                                }
+                                disabled={
+                                    rescheduling
+                                }
+                            />
+                        </label>
+
+                        <label>
+                                <span>
+                                    New time
+                                </span>
+
+                            <input
+                                type="time"
+                                value={
+                                    rescheduleTime
+                                }
+                                onChange={(event) =>
+                                    setRescheduleTime(
+                                        event.target.value
+                                    )
+                                }
+                                disabled={
+                                    rescheduling
+                                }
+                            />
+                        </label>
+
+                    </div>
+
+                    {rescheduleError && (
+                        <p className="reschedule-modal-error">
+                            {
+                                rescheduleError
+                            }
+                        </p>
+                    )}
+
+                    <div className="reschedule-modal-actions">
+
+                        <button
+                            type="button"
+                            className="keep-booking-button"
+                            onClick={
+                                closeReschedule
+                            }
+                            disabled={
+                                rescheduling
+                            }
+                        >
+                            Cancel
+                        </button>
+
+                        <button
+                            type="button"
+                            className="confirm-reschedule-button"
+                            onClick={
+                                confirmReschedule
+                            }
+                            disabled={
+                                rescheduling
+                            }
+                        >
+                            {rescheduling
+                                ? "Saving..."
+                                : "Confirm New Time"}
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+        )}
+
+        {/* REVIEW MODAL */}
+
+        {reviewTarget && (
+            <div className="review-modal-overlay">
+
+                <div className="review-modal">
+
+                    <div className="review-modal-header">
+
+                            <span className="review-modal-label">
+                                COMPLETED BOOKING
+                            </span>
 
                         <h3>
-                            Cancel this booking?
+                            Review{" "}
+                            {getFundiName(
+                                reviewTarget
+                            )}
                         </h3>
 
                         <p>
-                            You're about to cancel your booking
-                            with{" "}
-                            <strong>
-                                {getFundiName(cancelTarget)}
-                            </strong>
-                            . This can't be undone.
+                            How was your experience
+                            with this Fundi?
                         </p>
 
-                        {cancelError && (
-                            <p className="cancel-modal-error">
-                                {cancelError}
-                            </p>
-                        )}
+                    </div>
 
-                        <div className="cancel-modal-actions">
+                    <div className="review-rating-section">
 
-                            <button
-                                className="keep-booking-button"
-                                onClick={() => {
-                                    setCancelTarget(null);
-                                    setCancelError("");
-                                }}
-                                disabled={cancelling}
-                            >
-                                Keep Booking
-                            </button>
+                            <span>
+                                Your rating
+                            </span>
 
-                            <button
-                                className="confirm-cancel-button"
-                                onClick={confirmCancel}
-                                disabled={cancelling}
-                            >
-                                {cancelling
-                                    ? "Cancelling..."
-                                    : "Cancel Booking"}
-                            </button>
+                        <div className="review-stars">
+
+                            {[1, 2, 3, 4, 5].map(
+                                (star) => (
+                                    <button
+                                        key={star}
+                                        type="button"
+                                        className={
+                                            star <=
+                                            reviewRating
+                                                ? "review-star active"
+                                                : "review-star"
+                                        }
+                                        onClick={() =>
+                                            setReviewRating(
+                                                star
+                                            )
+                                        }
+                                        disabled={
+                                            reviewSubmitting
+                                        }
+                                        aria-label={`${star} star rating`}
+                                    >
+                                        ★
+                                    </button>
+                                )
+                            )}
 
                         </div>
 
+                        <strong>
+                            {reviewRating}{" "}
+                            {reviewRating === 1
+                                ? "Star"
+                                : "Stars"}
+                        </strong>
+
                     </div>
-                </div>
-            )}
 
+                    <label className="review-comment-field">
 
-            {/* =========================
-                RESCHEDULE MODAL
-            ========================= */}
+                            <span>
+                                Comment
+                            </span>
 
-            {rescheduleTarget && (
-                <div className="reschedule-modal-overlay">
-                    <div className="reschedule-modal">
+                        <textarea
+                            value={
+                                reviewComment
+                            }
+                            onChange={(event) =>
+                                setReviewComment(
+                                    event.target.value
+                                )
+                            }
+                            placeholder="Tell other homeowners about your experience..."
+                            maxLength={1000}
+                            rows={5}
+                            disabled={
+                                reviewSubmitting
+                            }
+                        />
 
-                        <h3>
-                            Reschedule this booking?
-                        </h3>
+                        <small>
+                            {reviewComment.length}/1000
+                        </small>
 
-                        <p>
-                            Pick a new date and time for your
-                            booking with{" "}
-                            <strong>
-                                {getFundiName(rescheduleTarget)}
-                            </strong>
-                            .
+                    </label>
+
+                    {reviewError && (
+                        <p className="review-modal-error">
+                            {reviewError}
                         </p>
+                    )}
 
-                        <div className="reschedule-modal-fields">
+                    {reviewSuccess && (
+                        <p className="review-modal-success">
+                            {reviewSuccess}
+                        </p>
+                    )}
 
-                            <label>
-                                <span>New date</span>
-                                <input
-                                    type="date"
-                                    value={rescheduleDate}
-                                    onChange={(e) =>
-                                        setRescheduleDate(
-                                            e.target.value
-                                        )
-                                    }
-                                    disabled={rescheduling}
-                                />
-                            </label>
+                    <div className="review-modal-actions">
 
-                            <label>
-                                <span>New time</span>
-                                <input
-                                    type="time"
-                                    value={rescheduleTime}
-                                    onChange={(e) =>
-                                        setRescheduleTime(
-                                            e.target.value
-                                        )
-                                    }
-                                    disabled={rescheduling}
-                                />
-                            </label>
+                        <button
+                            type="button"
+                            className="review-cancel-button"
+                            onClick={closeReview}
+                            disabled={
+                                reviewSubmitting
+                            }
+                        >
+                            Cancel
+                        </button>
 
-                        </div>
-
-                        {rescheduleError && (
-                            <p className="reschedule-modal-error">
-                                {rescheduleError}
-                            </p>
-                        )}
-
-                        <div className="reschedule-modal-actions">
-
-                            <button
-                                className="keep-booking-button"
-                                onClick={closeReschedule}
-                                disabled={rescheduling}
-                            >
-                                Cancel
-                            </button>
-
-                            <button
-                                className="confirm-reschedule-button"
-                                onClick={confirmReschedule}
-                                disabled={rescheduling}
-                            >
-                                {rescheduling
-                                    ? "Saving..."
-                                    : "Confirm New Time"}
-                            </button>
-
-                        </div>
+                        <button
+                            type="button"
+                            className="review-submit-button"
+                            onClick={
+                                submitReview
+                            }
+                            disabled={
+                                reviewSubmitting
+                            }
+                        >
+                            {reviewSubmitting
+                                ? "Submitting..."
+                                : "Submit Review"}
+                        </button>
 
                     </div>
-                </div>
-            )}
 
-        </main>
-    );
+                </div>
+
+            </div>
+        )}
+
+    </main>
+);
 }
 
 export default MyBookings;
+

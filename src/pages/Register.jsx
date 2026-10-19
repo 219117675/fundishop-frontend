@@ -1,139 +1,194 @@
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { API_URL } from "../api";
 import "./Register.css";
 
-function Register() {
+const initialFormData = {
+    fullName: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirmPassword: "",
+    role: "HOMEOWNER",
+    tradeCategory: "",
+    bio: "",
+    calloutFee: "",
+    hourlyRate: "",
+    serviceAreaRadiusKm: "",
+};
+
+const Register = () => {
     const navigate = useNavigate();
 
-    const [formData, setFormData] = useState({
-        fullName: "",
-        email: "",
-        phone: "",
-        password: "",
-        confirmPassword: "",
-        role: "HOMEOWNER",
-
-        // Fundi profile fields
-        tradeCategory: "GENERAL",
-        bio: "",
-        calloutFee: "",
-        hourlyRate: "",
-        serviceAreaRadiusKm: "",
-    });
-
+    const [formData, setFormData] = useState(initialFormData);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
+    const handleChange = (event) => {
+        const { name, value } = event.target;
 
-        setFormData({
-            ...formData,
+        setFormData((previous) => ({
+            ...previous,
             [name]: value,
-        });
+        }));
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleRoleChange = (event) => {
+        const role = event.target.value;
 
-        setMessage("");
-        setError("");
+        setFormData((previous) => ({
+            ...previous,
+            role,
+            tradeCategory: "",
+            bio: "",
+            calloutFee: "",
+            hourlyRate: "",
+            serviceAreaRadiusKm: "",
+        }));
+    };
 
-        // Password validation
-        if (formData.password !== formData.confirmPassword) {
-            setError("Passwords do not match.");
-            return;
+    const validateForm = () => {
+        if (!formData.fullName.trim()) {
+            return "Please enter your full name.";
+        }
+
+        if (!formData.email.trim()) {
+            return "Please enter your email address.";
+        }
+
+        if (!formData.phone.trim()) {
+            return "Please enter your phone number.";
+        }
+
+        if (!formData.password) {
+            return "Please enter a password.";
         }
 
         if (formData.password.length < 6) {
-            setError("Password must be at least 6 characters.");
-            return;
+            return "Password must be at least 6 characters long.";
         }
 
-        // Fundi validation
+        if (formData.password !== formData.confirmPassword) {
+            return "Passwords do not match.";
+        }
+
+        if (!["HOMEOWNER", "FUNDI"].includes(formData.role)) {
+            return "Please select a valid account type.";
+        }
+
         if (formData.role === "FUNDI") {
             if (!formData.tradeCategory) {
-                setError("Please select your trade category.");
-                return;
+                return "Please select your trade category.";
             }
 
             if (!formData.bio.trim()) {
-                setError("Please tell us a little about your services.");
-                return;
+                return "Please enter a short description about your services.";
             }
 
-            if (!formData.hourlyRate) {
-                setError("Please enter your hourly rate.");
-                return;
+            if (
+                formData.calloutFee === "" ||
+                !Number.isFinite(Number(formData.calloutFee)) ||
+                Number(formData.calloutFee) < 0
+            ) {
+                return "Please enter a valid callout fee of R0 or more.";
             }
 
-            if (!formData.serviceAreaRadiusKm) {
-                setError("Please enter your service area radius.");
-                return;
+            if (
+                formData.hourlyRate === "" ||
+                !Number.isFinite(Number(formData.hourlyRate)) ||
+                Number(formData.hourlyRate) < 0
+            ) {
+                return "Please enter a valid hourly rate of R0 or more.";
             }
+
+            if (
+                formData.serviceAreaRadiusKm === "" ||
+                !Number.isFinite(Number(formData.serviceAreaRadiusKm)) ||
+                Number(formData.serviceAreaRadiusKm) <= 0
+            ) {
+                return "Service area radius must be greater than 0.";
+            }
+        }
+
+        return null;
+    };
+
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        setMessage("");
+        setError("");
+
+        const validationError = validateForm();
+
+        if (validationError) {
+            setError(validationError);
+            return;
         }
 
         setLoading(true);
 
         try {
             const requestBody = {
-                fullName: formData.fullName,
-                email: formData.email,
-                phone: formData.phone,
+                fullName: formData.fullName.trim(),
+                email: formData.email.trim(),
+                phone: formData.phone.trim(),
                 password: formData.password,
                 role: formData.role,
             };
 
-            // Only send Fundi information when registering as a Fundi
             if (formData.role === "FUNDI") {
                 requestBody.tradeCategory = formData.tradeCategory;
-                requestBody.bio = formData.bio;
-                requestBody.calloutFee = formData.calloutFee
-                    ? Number(formData.calloutFee)
-                    : null;
+                requestBody.bio = formData.bio.trim();
+                requestBody.calloutFee = Number(formData.calloutFee);
                 requestBody.hourlyRate = Number(formData.hourlyRate);
-                requestBody.serviceAreaRadiusKm =
-                    Number(formData.serviceAreaRadiusKm);
+                requestBody.serviceAreaRadiusKm = Number(
+                    formData.serviceAreaRadiusKm
+                );
             }
 
-            const response = await fetch(
-                "http://localhost:8080/api/auth/register",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(requestBody),
-                }
-            );
+            const response = await fetch(`${API_URL}/api/auth/register`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(requestBody),
+            });
 
-            const data = await response.json();
+            let data = null;
+
+            try {
+                data = await response.json();
+            } catch {
+                data = null;
+            }
 
             if (!response.ok) {
                 throw new Error(
-                    data.message ||
-                    "Registration failed. Please check your details."
+                    data?.message ||
+                    data?.error ||
+                    "Registration failed. Please try again."
                 );
             }
 
             setMessage(
-                formData.role === "FUNDI"
-                    ? "Fundi account created successfully! Your profile is now pending verification."
-                    : "Account created successfully!"
+                "Registration successful! Redirecting you to login..."
             );
+            setFormData({ ...initialFormData });
 
-            setTimeout(() => {
+            window.setTimeout(() => {
                 navigate("/login");
-            }, 1800);
-
-        } catch (err) {
-            console.error("REGISTRATION ERROR:", err);
+            }, 1500);
+        } catch (registrationError) {
+            console.error("Registration error:", registrationError);
 
             setError(
-                err.message ||
-                "Unable to create your account. Please try again."
+                registrationError instanceof Error
+                    ? registrationError.message
+                    : "Unable to register. Please check your connection and try again."
             );
         } finally {
             setLoading(false);
@@ -142,366 +197,341 @@ function Register() {
 
     return (
         <main className="register-page">
-
-            <div className="register-card">
-
-                <div className="register-header">
-
-                    <span className="register-label">
-                        JOIN FUNDISHOP
+            <section className="register-container">
+                <Link to="/" className="auth-brand" aria-label="FundiShop home">
+                    <span className="auth-brand-mark">F</span>
+                    <span>
+                        Fundi<span className="auth-brand-accent">Shop</span>
                     </span>
+                </Link>
 
-                    <h1>Create your account</h1>
-
+                <header className="register-header">
+                    <span className="auth-eyebrow">GET STARTED</span>
+                    <h1>Create your account.</h1>
                     <p>
-                        Connect with trusted professionals
-                        or offer your services.
+                        Join FundiShop to find trusted professionals or grow
+                        your service business.
                     </p>
-
-                </div>
+                </header>
 
                 {message && (
-                    <div className="success-message">
+                    <div className="auth-message auth-success" role="status">
                         {message}
                     </div>
                 )}
 
                 {error && (
-                    <div className="error-message">
+                    <div className="auth-message auth-error" role="alert">
                         {error}
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit}>
+                <form className="register-form" onSubmit={handleSubmit}>
+                    <fieldset className="account-type-fieldset" disabled={loading}>
+                        <legend>How will you use FundiShop?</legend>
 
-                    {/* FULL NAME */}
-
-                    <div className="form-group">
-
-                        <label htmlFor="fullName">
-                            Full Name
-                        </label>
-
-                        <input
-                            type="text"
-                            id="fullName"
-                            name="fullName"
-                            value={formData.fullName}
-                            onChange={handleChange}
-                            placeholder="Enter your full name"
-                            required
-                        />
-
-                    </div>
-
-                    {/* EMAIL */}
-
-                    <div className="form-group">
-
-                        <label htmlFor="email">
-                            Email Address
-                        </label>
-
-                        <input
-                            type="email"
-                            id="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            placeholder="you@example.com"
-                            required
-                        />
-
-                    </div>
-
-                    {/* PHONE */}
-
-                    <div className="form-group">
-
-                        <label htmlFor="phone">
-                            Phone Number
-                        </label>
-
-                        <input
-                            type="tel"
-                            id="phone"
-                            name="phone"
-                            value={formData.phone}
-                            onChange={handleChange}
-                            placeholder="Enter your phone number"
-                            required
-                        />
-
-                    </div>
-
-                    {/* PASSWORD */}
-
-                    <div className="form-group">
-
-                        <label htmlFor="password">
-                            Password
-                        </label>
-
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            placeholder="Create a password"
-                            required
-                        />
-
-                    </div>
-
-                    {/* CONFIRM PASSWORD */}
-
-                    <div className="form-group">
-
-                        <label htmlFor="confirmPassword">
-                            Confirm Password
-                        </label>
-
-                        <input
-                            type="password"
-                            id="confirmPassword"
-                            name="confirmPassword"
-                            value={formData.confirmPassword}
-                            onChange={handleChange}
-                            placeholder="Confirm your password"
-                            required
-                        />
-
-                    </div>
-
-                    {/* ROLE */}
-
-                    <div className="role-section">
-
-                        <label>
-                            I want to register as:
-                        </label>
-
-                        <div className="role-options">
-
-                            <label className="role-option">
-
+                        <div className="account-type-options">
+                            <label
+                                className={`account-type-option ${
+                                    formData.role === "HOMEOWNER" ? "selected" : ""
+                                }`}
+                            >
                                 <input
                                     type="radio"
                                     name="role"
                                     value="HOMEOWNER"
-                                    checked={
-                                        formData.role === "HOMEOWNER"
-                                    }
-                                    onChange={handleChange}
+                                    checked={formData.role === "HOMEOWNER"}
+                                    onChange={handleRoleChange}
                                 />
-
-                                <span>
-                                    Homeowner
+                                <span className="account-type-icon" aria-hidden="true">
+                                    H
                                 </span>
-
+                                <span className="account-type-copy">
+                                    <strong>Homeowner</strong>
+                                    <small>Find help for your home</small>
+                                </span>
                             </label>
 
-                            <label className="role-option">
-
+                            <label
+                                className={`account-type-option ${
+                                    formData.role === "FUNDI" ? "selected" : ""
+                                }`}
+                            >
                                 <input
                                     type="radio"
                                     name="role"
                                     value="FUNDI"
-                                    checked={
-                                        formData.role === "FUNDI"
-                                    }
-                                    onChange={handleChange}
+                                    checked={formData.role === "FUNDI"}
+                                    onChange={handleRoleChange}
                                 />
-
-                                <span>
-                                    Fundi
+                                <span className="account-type-icon" aria-hidden="true">
+                                    F
                                 </span>
-
+                                <span className="account-type-copy">
+                                    <strong>Fundi</strong>
+                                    <small>Offer your services</small>
+                                </span>
                             </label>
-
                         </div>
+                    </fieldset>
 
+                    <div className="register-section-heading">
+                        <h2>Your details</h2>
+                        <p>Enter your contact information to get started.</p>
                     </div>
 
-                    {/* FUNDI INFORMATION */}
+                    <div className="auth-field">
+                        <label htmlFor="register-full-name">Full name</label>
+                        <input
+                            id="register-full-name"
+                            type="text"
+                            name="fullName"
+                            value={formData.fullName}
+                            onChange={handleChange}
+                            placeholder="Enter your full name"
+                            autoComplete="name"
+                            disabled={loading}
+                            required
+                        />
+                    </div>
+
+                    <div className="auth-field">
+                        <label htmlFor="register-email">Email address</label>
+                        <input
+                            id="register-email"
+                            type="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            placeholder="you@example.com"
+                            autoComplete="email"
+                            disabled={loading}
+                            required
+                        />
+                    </div>
+
+                    <div className="auth-field">
+                        <label htmlFor="register-phone">Phone number</label>
+                        <input
+                            id="register-phone"
+                            type="tel"
+                            name="phone"
+                            value={formData.phone}
+                            onChange={handleChange}
+                            placeholder="Enter your phone number"
+                            autoComplete="tel"
+                            disabled={loading}
+                            required
+                        />
+                    </div>
+
+                    <div className="auth-field">
+                        <label htmlFor="register-password">Password</label>
+                        <div className="auth-password-wrap">
+                            <input
+                                id="register-password"
+                                type={showPassword ? "text" : "password"}
+                                name="password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                placeholder="At least 6 characters"
+                                autoComplete="new-password"
+                                minLength={6}
+                                disabled={loading}
+                                required
+                            />
+                            <button
+                                type="button"
+                                className="auth-password-toggle"
+                                onClick={() => setShowPassword((value) => !value)}
+                                aria-label={showPassword ? "Hide password" : "Show password"}
+                                disabled={loading}
+                            >
+                                {showPassword ? "Hide" : "Show"}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="auth-field">
+                        <label htmlFor="register-confirm-password">
+                            Confirm password
+                        </label>
+                        <div className="auth-password-wrap">
+                            <input
+                                id="register-confirm-password"
+                                type={showConfirmPassword ? "text" : "password"}
+                                name="confirmPassword"
+                                value={formData.confirmPassword}
+                                onChange={handleChange}
+                                placeholder="Enter your password again"
+                                autoComplete="new-password"
+                                disabled={loading}
+                                required
+                            />
+                            <button
+                                type="button"
+                                className="auth-password-toggle"
+                                onClick={() =>
+                                    setShowConfirmPassword((value) => !value)
+                                }
+                                aria-label={
+                                    showConfirmPassword
+                                        ? "Hide confirm password"
+                                        : "Show confirm password"
+                                }
+                                disabled={loading}
+                            >
+                                {showConfirmPassword ? "Hide" : "Show"}
+                            </button>
+                        </div>
+                    </div>
 
                     {formData.role === "FUNDI" && (
-
-                        <div className="fundi-section">
-
-                            <div className="fundi-section-header">
-
-                                <span className="register-label">
-                                    FUND I PROFILE
-                                </span>
-
-                                <h2>
-                                    Tell us about your services
-                                </h2>
-
+                        <section className="fundi-registration-section">
+                            <div className="fundi-registration-heading">
+                                <span className="auth-eyebrow">SERVICE PROVIDER</span>
+                                <h2>Tell us about your work</h2>
                                 <p>
-                                    This information will appear on your
-                                    Fundi profile.
+                                    These details help customers understand
+                                    your services and rates.
                                 </p>
-
                             </div>
 
-                            {/* TRADE CATEGORY */}
-
-                            <div className="form-group">
-
-                                <label htmlFor="tradeCategory">
-                                    Trade Category
+                            <div className="auth-field">
+                                <label htmlFor="register-trade">
+                                    Trade category
                                 </label>
-
                                 <select
-                                    id="tradeCategory"
+                                    id="register-trade"
                                     name="tradeCategory"
                                     value={formData.tradeCategory}
                                     onChange={handleChange}
+                                    disabled={loading}
                                     required
                                 >
-                                    <option value="ELECTRICAL">
-                                        Electrical
-                                    </option>
-
-                                    <option value="PLUMBING">
-                                        Plumbing
-                                    </option>
-
-                                    <option value="HANDYMAN">
-                                        Handyman
-                                    </option>
-
-                                    <option value="PAINTING">
-                                        Painting
-                                    </option>
-
-                                    <option value="GENERAL">
-                                        General
-                                    </option>
+                                    <option value="">Select your trade</option>
+                                    <option value="PLUMBER">Plumber</option>
+                                    <option value="ELECTRICIAN">Electrician</option>
+                                    <option value="CARPENTER">Carpenter</option>
+                                    <option value="PAINTER">Painter</option>
+                                    <option value="BUILDER">Builder</option>
+                                    <option value="TILER">Tiler</option>
+                                    <option value="GARDENER">Gardener</option>
+                                    <option value="HANDYMAN">Handyman</option>
+                                    <option value="CLEANER">Cleaner</option>
+                                    <option value="ROOFER">Roofer</option>
+                                    <option value="OTHER">Other</option>
                                 </select>
-
                             </div>
 
-                            {/* BIO */}
-
-                            <div className="form-group">
-
-                                <label htmlFor="bio">
-                                    About Your Services
+                            <div className="auth-field">
+                                <label htmlFor="register-bio">
+                                    About your services
                                 </label>
-
                                 <textarea
-                                    id="bio"
+                                    id="register-bio"
                                     name="bio"
                                     value={formData.bio}
                                     onChange={handleChange}
-                                    placeholder="Tell homeowners about your experience and the services you provide..."
-                                    rows="4"
+                                    placeholder="Describe your services and experience"
+                                    rows={4}
+                                    disabled={loading}
                                     required
                                 />
-
                             </div>
 
-                            {/* CALLOUT FEE */}
+                            <div className="register-rate-grid">
+                                <div className="auth-field">
+                                    <label htmlFor="register-callout-fee">
+                                        Callout fee (R)
+                                    </label>
+                                    <input
+                                        id="register-callout-fee"
+                                        type="number"
+                                        name="calloutFee"
+                                        value={formData.calloutFee}
+                                        onChange={handleChange}
+                                        placeholder="e.g. 250"
+                                        min="0"
+                                        step="0.01"
+                                        disabled={loading}
+                                        required
+                                    />
+                                </div>
 
-                            <div className="form-group">
-
-                                <label htmlFor="calloutFee">
-                                    Callout Fee (R)
-                                </label>
-
-                                <input
-                                    type="number"
-                                    id="calloutFee"
-                                    name="calloutFee"
-                                    value={formData.calloutFee}
-                                    onChange={handleChange}
-                                    placeholder="e.g. 250"
-                                    min="0"
-                                    step="0.01"
-                                />
-
+                                <div className="auth-field">
+                                    <label htmlFor="register-hourly-rate">
+                                        Hourly rate (R)
+                                    </label>
+                                    <input
+                                        id="register-hourly-rate"
+                                        type="number"
+                                        name="hourlyRate"
+                                        value={formData.hourlyRate}
+                                        onChange={handleChange}
+                                        placeholder="e.g. 350"
+                                        min="0"
+                                        step="0.01"
+                                        disabled={loading}
+                                        required
+                                    />
+                                </div>
                             </div>
 
-                            {/* HOURLY RATE */}
-
-                            <div className="form-group">
-
-                                <label htmlFor="hourlyRate">
-                                    Hourly Rate (R)
+                            <div className="auth-field">
+                                <label htmlFor="register-service-radius">
+                                    Service area radius (km)
                                 </label>
-
                                 <input
+                                    id="register-service-radius"
                                     type="number"
-                                    id="hourlyRate"
-                                    name="hourlyRate"
-                                    value={formData.hourlyRate}
-                                    onChange={handleChange}
-                                    placeholder="e.g. 350"
-                                    min="0"
-                                    step="0.01"
-                                    required
-                                />
-
-                            </div>
-
-                            {/* SERVICE AREA */}
-
-                            <div className="form-group">
-
-                                <label htmlFor="serviceAreaRadiusKm">
-                                    Service Area Radius (km)
-                                </label>
-
-                                <input
-                                    type="number"
-                                    id="serviceAreaRadiusKm"
                                     name="serviceAreaRadiusKm"
-                                    value={
-                                        formData.serviceAreaRadiusKm
-                                    }
+                                    value={formData.serviceAreaRadiusKm}
                                     onChange={handleChange}
                                     placeholder="e.g. 25"
-                                    min="1"
+                                    min="0.1"
+                                    step="0.1"
+                                    disabled={loading}
                                     required
                                 />
-
+                                <p className="auth-field-hint">
+                                    How far are you willing to travel for a job?
+                                </p>
                             </div>
-
-                        </div>
-
+                        </section>
                     )}
 
                     <button
                         type="submit"
-                        className="register-submit"
+                        className="auth-submit-button register-submit-button"
                         disabled={loading}
                     >
-                        {loading
-                            ? "Creating Account..."
-                            : "Create Account"}
+                        {loading ? (
+                            <>
+                                <span className="auth-spinner" />
+                                Creating account...
+                            </>
+                        ) : (
+                            "Create your account"
+                        )}
                     </button>
 
+                    <p className="register-terms-note">
+                        By creating an account, make sure the information you
+                        provide is accurate and up to date.
+                    </p>
                 </form>
 
-                <p className="login-link">
+                <div className="auth-divider">
+                    <span>ALREADY A MEMBER?</span>
+                </div>
 
-                    Already have an account?{" "}
-
-                    <Link to="/login">
-                        Login
-                    </Link>
-
+                <p className="auth-switch">
+                    Already have an account? <Link to="/login">Sign in</Link>
                 </p>
-
-            </div>
-
+            </section>
         </main>
     );
-}
+};
 
 export default Register;
-
